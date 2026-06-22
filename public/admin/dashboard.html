@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Premium Craft</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, 'Segoe UI', sans-serif;
+    background: #15120F;
+    color: #EFE7D8;
+    min-height: 100vh;
+  }
+  header {
+    background: #1C1814;
+    border-bottom: 1px solid rgba(176,141,87,0.2);
+    padding: 18px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  header h1 { font-size: 18px; }
+  header .actions { display: flex; gap: 12px; }
+  .btn {
+    padding: 9px 16px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid rgba(176,141,87,0.3);
+    background: transparent;
+    color: #EFE7D8;
+  }
+  .btn:hover { background: rgba(176,141,87,0.1); }
+  .btn-primary {
+    background: #0E4B3A;
+    border-color: #16654F;
+  }
+  .btn-primary:hover { background: #16654F; }
+  .btn-danger {
+    background: transparent;
+    border-color: rgba(200,80,80,0.4);
+    color: #ff9999;
+  }
+  .btn-danger:hover { background: rgba(200,80,80,0.15); }
+
+  main {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+  }
+
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+  .toolbar h2 { font-size: 20px; }
+  .toolbar p { color: #C9BFA9; font-size: 14px; margin-top: 4px; }
+
+  .product-list { display: flex; flex-direction: column; gap: 14px; }
+  .product-row {
+    background: #1C1814;
+    border: 1px solid rgba(176,141,87,0.18);
+    border-radius: 6px;
+    padding: 16px;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+  .thumb {
+    width: 64px; height: 64px;
+    border-radius: 4px;
+    background: linear-gradient(150deg, #2c2418, #16120d);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    color: rgba(201,169,97,0.6);
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+  .row-info { flex: 1; min-width: 0; }
+  .row-info h3 { font-size: 15px; margin-bottom: 2px; }
+  .row-info .tag { font-size: 12px; color: #B08D57; }
+  .row-info .price { font-size: 14px; color: #EFE7D8; margin-top: 4px; font-family: monospace; }
+
+  .row-actions { display: flex; gap: 8px; flex-shrink: 0; }
+  .row-actions button {
+    background: transparent;
+    border: 1px solid rgba(176,141,87,0.3);
+    color: #EFE7D8;
+    padding: 7px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .row-actions button:hover { background: rgba(176,141,87,0.1); }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #C9BFA9;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: #1C1814;
+    border: 1px solid rgba(176,141,87,0.3);
+    border-radius: 8px;
+    width: 100%;
+    max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 28px;
+  }
+  .modal h2 { font-size: 18px; margin-bottom: 20px; }
+  .field { margin-bottom: 16px; }
+  .field label {
+    display: block;
+    font-size: 13px;
+    color: #C9A961;
+    margin-bottom: 6px;
+  }
+  .field input, .field textarea {
+    width: 100%;
+    padding: 10px 12px;
+    background: #15120F;
+    border: 1px solid rgba(176,141,87,0.3);
+    border-radius: 4px;
+    color: #EFE7D8;
+    font-size: 14px;
+    font-family: inherit;
+  }
+  .field textarea { resize: vertical; min-height: 70px; }
+  .field input:focus, .field textarea:focus { outline: 2px solid #C9A961; }
+  .field-hint { font-size: 12px; color: #C9BFA9; margin-top: 4px; }
+
+  .image-preview {
+    width: 100%;
+    aspect-ratio: 1;
+    max-width: 160px;
+    border-radius: 4px;
+    background: #15120F;
+    border: 1px dashed rgba(176,141,87,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    margin-bottom: 10px;
+    color: #C9BFA9;
+    font-size: 13px;
+  }
+  .image-preview img { width: 100%; height: 100%; object-fit: cover; }
+
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 24px;
+  }
+
+  .modal-error {
+    background: rgba(180,60,60,0.15);
+    border: 1px solid rgba(180,60,60,0.4);
+    color: #ffb3b3;
+    padding: 10px 14px;
+    border-radius: 4px;
+    font-size: 13px;
+    margin-top: 14px;
+    display: none;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: #0E4B3A;
+    border: 1px solid #16654F;
+    color: #EFE7D8;
+    padding: 14px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    z-index: 200;
+    display: none;
+  }
+
+  @media (max-width: 600px) {
+    .product-row { flex-wrap: wrap; }
+    .row-actions { width: 100%; justify-content: flex-start; margin-top: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Premium Craft — Dashboard</h1>
+  <div class="actions">
+    <button class="btn" id="changePassBtn">Change Password</button>
+    <button class="btn" id="logoutBtn">Log Out</button>
+  </div>
+</header>
+
+<main>
+  <div class="toolbar">
+    <div>
+      <h2>Your Products</h2>
+      <p>Add, edit, or remove products. Changes appear on your live site right away.</p>
+    </div>
+    <button class="btn btn-primary" id="addProductBtn">+ Add Product</button>
+  </div>
+
+  <div class="product-list" id="productList">
+    <div class="empty-state">Loading products…</div>
+  </div>
+</main>
+
+<!-- Add/Edit Product Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h2 id="modalTitle">Add Product</h2>
+    <form id="productForm">
+      <div class="field">
+        <label>Photo</label>
+        <div class="image-preview" id="imagePreview">No photo yet</div>
+        <input type="file" id="imageInput" accept="image/jpeg,image/png,image/webp">
+        <p class="field-hint">JPG, PNG, or WEBP. Max 8MB.</p>
+      </div>
+      <div class="field">
+        <label for="nameInput">Product Name *</label>
+        <input type="text" id="nameInput" placeholder="e.g. The Maqam Wall Clock" required>
+      </div>
+      <div class="field">
+        <label for="tagInput">Category Tag</label>
+        <input type="text" id="tagInput" placeholder="e.g. Wall Clock · Sheesham">
+      </div>
+      <div class="field">
+        <label for="descInput">Description</label>
+        <textarea id="descInput" placeholder="Short description of materials, size, finish..."></textarea>
+      </div>
+      <div class="field">
+        <label for="priceInput">Price (PKR) *</label>
+        <input type="number" id="priceInput" placeholder="e.g. 6500" min="0" required>
+      </div>
+      <div class="modal-error" id="modalError"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn" id="cancelBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="saveBtn">Save Product</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal-overlay" id="passOverlay">
+  <div class="modal">
+    <h2>Change Password</h2>
+    <form id="passForm">
+      <div class="field">
+        <label for="currentPass">Current Password</label>
+        <input type="password" id="currentPass" required>
+      </div>
+      <div class="field">
+        <label for="newPass">New Password</label>
+        <input type="password" id="newPass" minlength="8" required>
+        <p class="field-hint">At least 8 characters.</p>
+      </div>
+      <div class="modal-error" id="passError"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn" id="passCancelBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary">Update Password</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  let editingId = null;
+  let currentImagePath = null;
+
+  // ---------- Auth check ----------
+  async function checkAuth() {
+    const res = await fetch('/api/admin/me');
+    const data = await res.json();
+    if (!data.loggedIn) window.location.href = '/admin/index.html';
+  }
+  checkAuth();
+
+  // ---------- Toast ----------
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.style.display = 'block';
+    setTimeout(() => { toast.style.display = 'none'; }, 2500);
+  }
+
+  // ---------- Load products ----------
+  async function loadProducts() {
+    const res = await fetch('/api/admin/products');
+    const products = await res.json();
+    renderProducts(products);
+  }
+
+  function renderProducts(products) {
+    const list = document.getElementById('productList');
+    if (products.length === 0) {
+      list.innerHTML = '<div class="empty-state">No products yet. Click "+ Add Product" to create your first one.</div>';
+      return;
+    }
+    list.innerHTML = products.map(p => `
+      <div class="product-row" data-id="${p.id}">
+        <div class="thumb">
+          ${p.image_path ? `<img src="${p.image_path}" alt="${escapeHtml(p.name)}">` : (p.glyph || '◈')}
+        </div>
+        <div class="row-info">
+          <h3>${escapeHtml(p.name)}</h3>
+          <div class="tag">${escapeHtml(p.tag || '')}</div>
+          <div class="price">PKR ${Number(p.price).toLocaleString()}</div>
+        </div>
+        <div class="row-actions">
+          <button onclick="editProduct(${p.id})">Edit</button>
+          <button onclick="deleteProduct(${p.id})">Delete</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
+  }
+
+  // ---------- Modal control ----------
+  const modalOverlay = document.getElementById('modalOverlay');
+  const modalTitle = document.getElementById('modalTitle');
+  const productForm = document.getElementById('productForm');
+  const modalError = document.getElementById('modalError');
+  const imagePreview = document.getElementById('imagePreview');
+  const imageInput = document.getElementById('imageInput');
+
+  function openModal(title) {
+    modalTitle.textContent = title;
+    modalError.style.display = 'none';
+    modalOverlay.classList.add('open');
+  }
+  function closeModal() {
+    modalOverlay.classList.remove('open');
+    productForm.reset();
+    imagePreview.innerHTML = 'No photo yet';
+    editingId = null;
+    currentImagePath = null;
+  }
+
+  document.getElementById('addProductBtn').addEventListener('click', () => {
+    editingId = null;
+    openModal('Add Product');
+  });
+  document.getElementById('cancelBtn').addEventListener('click', closeModal);
+
+  imageInput.addEventListener('change', () => {
+    const file = imageInput.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        imagePreview.innerHTML = `<img src="${e.target.result}" alt="preview">`;
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  // ---------- Edit ----------
+  window.editProduct = async function(id) {
+    const res = await fetch('/api/admin/products');
+    const products = await res.json();
+    const p = products.find(x => x.id === id);
+    if (!p) return;
+
+    editingId = id;
+    currentImagePath = p.image_path;
+    document.getElementById('nameInput').value = p.name;
+    document.getElementById('tagInput').value = p.tag || '';
+    document.getElementById('descInput').value = p.description || '';
+    document.getElementById('priceInput').value = p.price;
+    imagePreview.innerHTML = p.image_path
+      ? `<img src="${p.image_path}" alt="current">`
+      : 'No photo yet';
+
+    openModal('Edit Product');
+  };
+
+  // ---------- Delete ----------
+  window.deleteProduct = async function(id) {
+    if (!confirm('Delete this product? This cannot be undone.')) return;
+    const res = await fetch(`/api/admin/products/${id}`, { method: 'DELETE' });
+    if (res.ok) {
+      showToast('Product deleted');
+      loadProducts();
+    } else {
+      alert('Could not delete product. Try again.');
+    }
+  };
+
+  // ---------- Save (Add or Edit) ----------
+  productForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    modalError.style.display = 'none';
+
+    const formData = new FormData();
+    formData.append('name', document.getElementById('nameInput').value);
+    formData.append('tag', document.getElementById('tagInput').value);
+    formData.append('description', document.getElementById('descInput').value);
+    formData.append('price', document.getElementById('priceInput').value);
+    if (imageInput.files[0]) {
+      formData.append('image', imageInput.files[0]);
+    }
+
+    const saveBtn = document.getElementById('saveBtn');
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving...';
+
+    try {
+      const url = editingId ? `/api/admin/products/${editingId}` : '/api/admin/products';
+      const method = editingId ? 'PUT' : 'POST';
+      const res = await fetch(url, { method, body: formData });
+      const data = await res.json();
+
+      if (res.ok) {
+        showToast(editingId ? 'Product updated' : 'Product added');
+        closeModal();
+        loadProducts();
+      } else {
+        modalError.textContent = data.error || 'Something went wrong';
+        modalError.style.display = 'block';
+      }
+    } catch (err) {
+      modalError.textContent = 'Could not connect to server. Try again.';
+      modalError.style.display = 'block';
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save Product';
+    }
+  });
+
+  // ---------- Logout ----------
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await fetch('/api/admin/logout', { method: 'POST' });
+    window.location.href = '/admin/index.html';
+  });
+
+  // ---------- Change Password ----------
+  const passOverlay = document.getElementById('passOverlay');
+  const passForm = document.getElementById('passForm');
+  const passError = document.getElementById('passError');
+
+  document.getElementById('changePassBtn').addEventListener('click', () => {
+    passError.style.display = 'none';
+    passForm.reset();
+    passOverlay.classList.add('open');
+  });
+  document.getElementById('passCancelBtn').addEventListener('click', () => {
+    passOverlay.classList.remove('open');
+  });
+
+  passForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    passError.style.display = 'none';
+
+    const currentPassword = document.getElementById('currentPass').value;
+    const newPassword = document.getElementById('newPass').value;
+
+    const res = await fetch('/api/admin/change-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ currentPassword, newPassword })
+    });
+    const data = await res.json();
+
+    if (res.ok) {
+      passOverlay.classList.remove('open');
+      showToast('Password updated');
+    } else {
+      passError.textContent = data.error || 'Could not update password';
+      passError.style.display = 'block';
+    }
+  });
+
+  // ---------- Init ----------
+  loadProducts();
+</script>
+</body>
+</html>

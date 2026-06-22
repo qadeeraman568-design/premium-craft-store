@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Premium Craft — Handcrafted Wood & Calligraphy Decor, Pakistan-Wide</title>
+<meta name="description" content="Premium Craft makes hand-finished wooden calligraphy, engraved wall art, and heritage-inspired decor — crafted in Lahore, made to order, and shipped anywhere in Pakistan.">
+
+<!-- SEO: structured data for a craft business shipping nationwide -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Store",
+  "name": "Premium Craft",
+  "description": "Handcrafted wooden Islamic calligraphy, engraved wall art, and heritage decor made to order in Lahore, Pakistan, and shipped nationwide.",
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "Lahore",
+    "addressCountry": "PK"
+  },
+  "areaServed": "PK",
+  "priceRange": "PKR 1500 - PKR 25000"
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --wood-dark: #15120F;
+    --wood-dark-raised: #1C1814;
+    --parchment: #EFE7D8;
+    --parchment-dim: #C9BFA9;
+    --emerald: #0E4B3A;
+    --emerald-bright: #16654F;
+    --brass: #B08D57;
+    --brass-bright: #C9A961;
+    --walnut: #8B5A2B;
+
+    --serif: 'Fraunces', serif;
+    --sans: 'Work Sans', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--wood-dark);
+    color: var(--parchment);
+    font-family: var(--sans);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* subtle wood-grain texture via layered gradients */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.05;
+    background-image:
+      repeating-linear-gradient(178deg, transparent 0px, transparent 3px, rgba(176,141,87,0.4) 3px, transparent 5px, transparent 40px),
+      repeating-linear-gradient(2deg, transparent 0px, transparent 60px, rgba(139,90,43,0.3) 60px, transparent 64px);
+  }
+
+  a { color: inherit; text-decoration: none; }
+
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 32px; }
+
+  /* ---------- Header ---------- */
+  header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    background: rgba(21, 18, 15, 0.85);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(176, 141, 87, 0.18);
+  }
+  .nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 32px;
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+  .logo {
+    font-family: var(--serif);
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .logo-mark {
+    width: 28px; height: 28px;
+    border: 1.5px solid var(--brass);
+    border-radius: 2px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--serif);
+    font-size: 15px;
+    color: var(--brass-bright);
+    transform: rotate(45deg);
+  }
+  .logo-mark span { transform: rotate(-45deg); }
+
+  .nav-links { display: flex; gap: 40px; align-items: center; }
+  .nav-links a {
+    font-size: 14px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--parchment-dim);
+    transition: color 0.25s;
+    position: relative;
+  }
+  .nav-links a:hover { color: var(--brass-bright); }
+  .nav-cta {
+    border: 1px solid var(--brass);
+    padding: 9px 20px;
+    border-radius: 2px;
+    color: var(--parchment) !important;
+    font-size: 13px !important;
+  }
+  .nav-cta:hover {
+    background: var(--brass);
+    color: var(--wood-dark) !important;
+  }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    position: relative;
+    padding-top: 90px;
+    overflow: hidden;
+  }
+  .hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 70% 60% at 75% 50%, rgba(14,75,58,0.35), transparent 70%);
+    pointer-events: none;
+  }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 50px;
+    align-items: center;
+    width: 100%;
+    position: relative;
+    z-index: 2;
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--brass-bright);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .eyebrow::before {
+    content: "";
+    width: 28px; height: 1px;
+    background: var(--brass);
+  }
+  .hero h1 {
+    font-family: var(--serif);
+    font-size: clamp(42px, 6vw, 72px);
+    font-weight: 600;
+    line-height: 1.04;
+    letter-spacing: -0.01em;
+    margin-bottom: 28px;
+  }
+  .hero h1 em {
+    font-style: italic;
+    color: var(--brass-bright);
+    font-weight: 500;
+  }
+  .hero p.lead {
+    font-size: 18px;
+    color: var(--parchment-dim);
+    max-width: 480px;
+    margin-bottom: 40px;
+    font-weight: 300;
+  }
+  .hero-actions { display: flex; gap: 18px; align-items: center; }
+  .btn-primary {
+    background: var(--emerald);
+    color: var(--parchment);
+    padding: 16px 32px;
+    border-radius: 2px;
+    font-size: 14px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-weight: 500;
+    border: 1px solid var(--emerald-bright);
+    transition: all 0.3s;
+    display: inline-block;
+  }
+  .btn-primary:hover { background: var(--emerald-bright); transform: translateY(-2px); }
+  .btn-text {
+    font-size: 14px;
+    color: var(--parchment-dim);
+    border-bottom: 1px solid var(--brass);
+    padding-bottom: 2px;
+    transition: color 0.25s;
+  }
+  .btn-text:hover { color: var(--brass-bright); }
+
+  /* Hero visual: wood panel with carved calligraphy motif (CSS-drawn, no external image needed) */
+  .hero-visual {
+    position: relative;
+    aspect-ratio: 4/5;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 40%, rgba(176,141,87,0.1), transparent 70%),
+      linear-gradient(160deg, #2a2118 0%, #1c1610 50%, #120f0b 100%);
+    border-radius: 4px;
+    box-shadow: 0 40px 80px -20px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(176,141,87,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .hero-visual::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(95deg, transparent, transparent 8px, rgba(139,90,43,0.15) 8px, transparent 12px),
+      repeating-linear-gradient(93deg, transparent, transparent 38px, rgba(0,0,0,0.15) 38px, transparent 40px);
+  }
+  .hero-visual::after {
+    content: "";
+    position: absolute;
+    inset: 22px;
+    border: 1px solid rgba(176,141,87,0.2);
+    box-shadow: inset 0 0 40px rgba(0,0,0,0.45);
+    pointer-events: none;
+    z-index: 1;
+  }
+  .carved-mark {
+    font-family: var(--serif);
+    font-size: 130px;
+    color: rgba(176, 141, 87, 0.5);
+    text-shadow: 0 2px 0 rgba(0,0,0,0.6), 0 0 36px rgba(201,169,97,0.15), 0 -1px 0 rgba(239,231,216,0.08);
+    position: relative;
+    z-index: 2;
+    font-weight: 600;
+    filter: drop-shadow(0 8px 14px rgba(0,0,0,0.4));
+  }
+  .hallmark {
+    position: absolute;
+    bottom: 24px; right: 24px;
+    border: 1px solid var(--brass);
+    padding: 10px 14px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--brass-bright);
+    background: rgba(21,18,15,0.6);
+    z-index: 3;
+    line-height: 1.5;
+  }
+
+  /* ---------- Grain divider ---------- */
+  .grain-divider {
+    position: relative;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--brass) 15%, var(--brass) 85%, transparent);
+    opacity: 0.4;
+    margin: 0 auto;
+  }
+  .grain-divider::before, .grain-divider::after {
+    content: "";
+    position: absolute;
+    top: -3px;
+    width: 100%;
+    height: 1px;
+    background: rgba(176,141,87,0.2);
+  }
+  .grain-divider::after { top: 3px; }
+
+  section { padding: 110px 0; position: relative; z-index: 2; }
+
+  .section-head {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 24px;
+    align-items: baseline;
+    margin-bottom: 64px;
+  }
+  .section-head .eyebrow { margin-bottom: 0; }
+  .section-head h2 {
+    font-family: var(--serif);
+    font-size: clamp(32px, 4vw, 44px);
+    font-weight: 600;
+    grid-column: 1 / -1;
+    margin-top: 8px;
+  }
+  .section-intro {
+    grid-column: 1 / -1;
+    max-width: 600px;
+    color: var(--parchment-dim);
+    font-size: 16px;
+    margin-top: 16px;
+  }
+
+  /* ---------- Craft pillars ---------- */
+  .pillars {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: rgba(176,141,87,0.18);
+    border: 1px solid rgba(176,141,87,0.18);
+  }
+  .pillar {
+    background: var(--wood-dark-raised);
+    padding: 44px 36px;
+    transition: background 0.3s;
+  }
+  .pillar:hover { background: #211c16; }
+  .pillar-num {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--brass);
+    margin-bottom: 24px;
+    letter-spacing: 0.1em;
+  }
+  .pillar h3 {
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+  .pillar p { color: var(--parchment-dim); font-size: 15px; font-weight: 300; }
+
+  /* ---------- Product grid ---------- */
+  .products {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+  }
+  .product-card {
+    background: var(--wood-dark-raised);
+    border: 1px solid rgba(176,141,87,0.15);
+    transition: border-color 0.3s, transform 0.3s;
+  }
+  .product-card:hover {
+    border-color: rgba(176,141,87,0.45);
+    transform: translateY(-4px);
+  }
+  .product-img {
+    aspect-ratio: 1/1;
+    background:
+      radial-gradient(ellipse 90% 70% at 50% 35%, rgba(176,141,87,0.08), transparent 70%),
+      linear-gradient(150deg, #2c2418 0%, #1c1610 55%, #120f0b 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    border-bottom: 1px solid rgba(176,141,87,0.15);
+    overflow: hidden;
+  }
+  .product-img::before {
+    content: "";
+    position: absolute; inset: 0;
+    background-image:
+      repeating-linear-gradient(100deg, transparent, transparent 9px, rgba(139,90,43,0.12) 9px, transparent 13px),
+      repeating-linear-gradient(98deg, transparent, transparent 31px, rgba(0,0,0,0.18) 31px, transparent 33px);
+  }
+  .product-img::after {
+    content: "";
+    position: absolute;
+    inset: 14px;
+    border: 1px solid rgba(176,141,87,0.22);
+    box-shadow: inset 0 0 24px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(0,0,0,0.3);
+    pointer-events: none;
+  }
+  .product-glyph {
+    font-family: var(--serif);
+    font-size: 64px;
+    color: rgba(201, 169, 97, 0.55);
+    position: relative; z-index: 2;
+    text-shadow: 0 2px 0 rgba(0,0,0,0.6), 0 0 28px rgba(201,169,97,0.18), 0 -1px 0 rgba(239,231,216,0.07);
+    filter: drop-shadow(0 6px 10px rgba(0,0,0,0.4));
+  }
+  .product-img:hover .product-glyph {
+    color: rgba(201, 169, 97, 0.7);
+  }
+  .product-info { padding: 24px 26px 28px; }
+  .product-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--brass);
+    margin-bottom: 10px;
+  }
+  .product-info h3 {
+    font-family: var(--serif);
+    font-size: 19px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .product-info p {
+    font-size: 14px;
+    color: var(--parchment-dim);
+    font-weight: 300;
+    margin-bottom: 16px;
+  }
+  .product-price {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 15px;
+  }
+  .price-tag { font-family: var(--mono); color: var(--parchment); }
+  .order-link {
+    font-size: 13px;
+    color: var(--emerald-bright);
+    border-bottom: 1px solid var(--emerald-bright);
+    padding-bottom: 1px;
+  }
+  .order-link:hover { color: var(--brass-bright); border-color: var(--brass-bright); }
+
+  /* ---------- Process strip ---------- */
+  .process {
+    background: var(--wood-dark-raised);
+    border-top: 1px solid rgba(176,141,87,0.15);
+    border-bottom: 1px solid rgba(176,141,87,0.15);
+  }
+  .process-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+  }
+  .process-step {
+    padding: 56px 30px;
+    border-right: 1px solid rgba(176,141,87,0.15);
+    position: relative;
+  }
+  .process-step:last-child { border-right: none; }
+  .process-mark {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--brass);
+    margin-bottom: 18px;
+  }
+  .process-step h4 {
+    font-family: var(--serif);
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .process-step p { font-size: 14px; color: var(--parchment-dim); font-weight: 300; }
+
+  /* ---------- Quote / trust ---------- */
+  .trust {
+    text-align: center;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  .trust blockquote {
+    font-family: var(--serif);
+    font-size: clamp(24px, 3vw, 32px);
+    font-weight: 500;
+    line-height: 1.4;
+    font-style: italic;
+    color: var(--parchment);
+    margin-bottom: 28px;
+  }
+  .trust cite {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    color: var(--brass);
+    text-transform: uppercase;
+  }
+
+  /* ---------- CTA band ---------- */
+  .cta-band {
+    text-align: center;
+    background: linear-gradient(180deg, var(--wood-dark) 0%, #0d1310 100%);
+    border-top: 1px solid rgba(176,141,87,0.18);
+  }
+  .cta-band h2 {
+    font-family: var(--serif);
+    font-size: clamp(32px, 4.5vw, 48px);
+    font-weight: 600;
+    margin-bottom: 20px;
+    max-width: 640px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .cta-band p {
+    color: var(--parchment-dim);
+    max-width: 480px;
+    margin: 0 auto 36px;
+  }
+
+  /* ---------- Footer ---------- */
+  footer {
+    padding: 60px 0 36px;
+    border-top: 1px solid rgba(176,141,87,0.15);
+  }
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr 1fr;
+    gap: 40px;
+    margin-bottom: 48px;
+  }
+  .footer-brand .logo { margin-bottom: 16px; }
+  .footer-brand p { color: var(--parchment-dim); font-size: 14px; font-weight: 300; max-width: 280px; }
+  .footer-col h5 {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--brass);
+    margin-bottom: 18px;
+  }
+  .footer-col a {
+    display: block;
+    font-size: 14px;
+    color: var(--parchment-dim);
+    margin-bottom: 12px;
+    transition: color 0.25s;
+  }
+  .footer-col a:hover { color: var(--brass-bright); }
+  .footer-bottom {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--parchment-dim);
+    padding-top: 28px;
+    border-top: 1px solid rgba(176,141,87,0.1);
+  }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 900px) {
+    .nav-links { display: none; }
+    .hero-grid { grid-template-columns: 1fr; }
+    .hero-visual { aspect-ratio: 16/10; order: -1; }
+    .pillars, .products { grid-template-columns: 1fr; }
+    .pillar, .product-card { border-right: none !important; }
+    .process-grid { grid-template-columns: 1fr 1fr; }
+    .process-step { border-bottom: 1px solid rgba(176,141,87,0.15); }
+    .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+    .footer-bottom { flex-direction: column; gap: 10px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--brass-bright);
+    outline-offset: 3px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <nav class="nav">
+    <a href="#" class="logo">
+      <span class="logo-mark"><span>P</span></span>
+      Premium Craft
+    </a>
+    <div class="nav-links">
+      <a href="#collection">Collection</a>
+      <a href="#process">Our Process</a>
+      <a href="#custom">Custom Orders</a>
+      <a href="https://wa.me/923390568364?text=Hi%2C%20I%27d%20like%20to%20ask%20about%20a%20custom%20piece" class="nav-cta">Order on WhatsApp</a>
+    </div>
+  </nav>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="eyebrow">Crafted in Lahore · Shipped Nationwide</p>
+        <h1>Wood and word,<br>carved to <em>outlast</em> trend.</h1>
+        <p class="lead">Premium Craft makes solid-wood calligraphy panels, engraved wall art, and heritage-inspired pieces — each one cut, sanded, and finished by hand, made to order rather than pulled off a shelf.</p>
+        <div class="hero-actions">
+          <a href="#collection" class="btn-primary">View the Collection</a>
+          <a href="#process" class="btn-text">See how it's made →</a>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="carved-mark">ﷲ</div>
+        <div class="hallmark">Solid Sheesham Wood<br>Hand-Finished · No. 001</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap"><div class="grain-divider"></div></div>
+
+  <section id="why">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Why wood, why by hand</p>
+        <h2>Three things mass production can't fake.</h2>
+        <p class="section-intro">Acrylic and laser-cut MDF dominate this category because they're fast and cheap. We chose the slower material on purpose — here's what that buys you.</p>
+      </div>
+      <div class="pillars">
+        <div class="pillar">
+          <div class="pillar-num">MATERIAL</div>
+          <h3>Solid wood, not veneer</h3>
+          <p>Sheesham and walnut sourced from local timber yards — pieces that age and deepen in color over years, the way real wood does, instead of yellowing plastic.</p>
+        </div>
+        <div class="pillar">
+          <div class="pillar-num">TECHNIQUE</div>
+          <h3>Hand-finished edges</h3>
+          <p>Every panel is sanded and oil-finished by hand after cutting. No sharp laser edges, no machine sheen — just a warm, tactile surface that photographs and feels premium.</p>
+        </div>
+        <div class="pillar">
+          <div class="pillar-num">PROCESS</div>
+          <h3>Made to order, not stocked</h3>
+          <p>We don't warehouse hundreds of identical pieces. Each order is cut for you, which means custom sizing, wording, and finish are the default, not an upcharge.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="collection">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">The Collection</p>
+        <h2>Ready-to-order pieces.</h2>
+        <p class="section-intro">Pick any piece below and order it as-is, or message us to change the size, wood, or wording. Tap "Order on WhatsApp" to start — no account, no checkout form.</p>
+      </div>
+      <div class="products" id="productsContainer">
+        <p style="color: var(--parchment-dim); grid-column: 1 / -1;">Loading the collection…</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="process" class="process">
+    <div class="wrap">
+      <div class="section-head" style="margin-bottom: 0;">
+        <p class="eyebrow">From timber to your wall</p>
+        <h2>How a piece gets made.</h2>
+      </div>
+    </div>
+    <div class="process-grid">
+      <div class="process-step">
+        <div class="process-mark">STEP 1</div>
+        <h4>You choose or customize</h4>
+        <p>Pick a piece from the collection, or send us a verse, name, or size for something fully custom.</p>
+      </div>
+      <div class="process-step">
+        <div class="process-mark">STEP 2</div>
+        <h4>We cut and carve</h4>
+        <p>Solid timber is cut to size, then hand- and machine-carved depending on the design's depth and detail.</p>
+      </div>
+      <div class="process-step">
+        <div class="process-mark">STEP 3</div>
+        <h4>Sanded and oil-finished</h4>
+        <p>Every edge is hand-sanded, then treated with a natural oil finish that deepens the wood's grain.</p>
+      </div>
+      <div class="process-step">
+        <div class="process-mark">STEP 4</div>
+        <h4>Packed and shipped</h4>
+        <p>Wrapped in protective padding and boxed for safe delivery anywhere in Pakistan, with care instructions.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="custom">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Custom Orders</p>
+        <h2>Want something different? Easy.</h2>
+        <p class="section-intro">Don't see the exact size, wood, or wording you want? Every piece can be customized. Here's how it works — just three steps, all on WhatsApp.</p>
+      </div>
+      <div class="pillars">
+        <div class="pillar">
+          <div class="pillar-num">STEP 1</div>
+          <h3>Tell us what you want</h3>
+          <p>Message us on WhatsApp with a photo or description — the verse, name, size, or wood you have in mind. No form to fill, no account needed.</p>
+        </div>
+        <div class="pillar">
+          <div class="pillar-num">STEP 2</div>
+          <h3>Get a price and timeline</h3>
+          <p>We reply with a clear price and how many days it will take to make. Nothing starts until you confirm you're happy with both.</p>
+        </div>
+        <div class="pillar">
+          <div class="pillar-num">STEP 3</div>
+          <h3>We make it, then ship it</h3>
+          <p>Your piece is cut, carved, and finished by hand, then packed carefully and shipped to you anywhere in Pakistan.</p>
+        </div>
+      </div>
+      <div style="text-align: center; margin-top: 48px;">
+        <a href="https://wa.me/923390568364?text=Hi%2C%20I%27d%20like%20to%20discuss%20a%20custom%20piece" class="btn-primary">Start a Custom Order on WhatsApp</a>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding-top: 0;">
+    <div class="wrap trust">
+      <blockquote>"We don't ask if you want it custom. We ask what size, what wood, and what it should say."</blockquote>
+      <cite>— On every custom order</cite>
+    </div>
+  </section>
+
+  <section class="cta-band">
+    <div class="wrap">
+      <h2>Have something specific in mind?</h2>
+      <p>Tell us the verse, the size, the wood — we'll quote it and walk you through timelines on WhatsApp, no account or checkout required.</p>
+      <a href="https://wa.me/923390568364?text=Hi%2C%20I%27d%20like%20to%20discuss%20a%20custom%20piece" class="btn-primary">Start a Custom Order</a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="#" class="logo"><span class="logo-mark"><span>P</span></span>Premium Craft</a>
+        <p>Hand-carved wood and calligraphy decor, made to order in Lahore. Built around material, not markup.</p>
+      </div>
+      <div class="footer-col">
+        <h5>Shop</h5>
+        <a href="#collection">Wall Clocks</a>
+        <a href="#collection">Carved Panels</a>
+        <a href="#collection">Entry Plaques</a>
+        <a href="#custom">Custom Orders</a>
+      </div>
+      <div class="footer-col">
+        <h5>Information</h5>
+        <a href="#process">Our Process</a>
+        <a href="#">Shipping & Returns</a>
+        <a href="#">Care Instructions</a>
+        <a href="#">Privacy Policy</a>
+      </div>
+      <div class="footer-col">
+        <h5>Reach Us</h5>
+        <a href="https://wa.me/923390568364">WhatsApp Order</a>
+        <a href="mailto:hello@premiumcraft.pk">hello@premiumcraft.pk</a>
+        <a href="#">Lahore, Pakistan</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Premium Craft. All rights reserved.</span>
+      <span>Every piece made to order — no two pieces are identical.</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const WHATSAPP_NUMBER = '923390568364';
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
+  }
+
+  function renderProductCard(p) {
+    const priceFormatted = Number(p.price).toLocaleString();
+    const message = encodeURIComponent(`Hi, I'd like to order the ${p.name}`);
+    const imageHtml = p.image_path
+      ? `<img src="${p.image_path}" alt="${escapeHtml(p.name)}" style="width:100%;height:100%;object-fit:cover;position:relative;z-index:2;">`
+      : `<div class="product-glyph">${p.glyph || '◈'}</div>`;
+
+    return `
+      <div class="product-card">
+        <div class="product-img">${imageHtml}</div>
+        <div class="product-info">
+          <p class="product-tag">${escapeHtml(p.tag)}</p>
+          <h3>${escapeHtml(p.name)}</h3>
+          <p>${escapeHtml(p.description)}</p>
+          <div class="product-price">
+            <span class="price-tag">PKR ${priceFormatted}</span>
+            <a href="https://wa.me/${WHATSAPP_NUMBER}?text=${message}" class="order-link">Order on WhatsApp →</a>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  async function loadProducts() {
+    const container = document.getElementById('productsContainer');
+    try {
+      const res = await fetch('/api/products');
+      const products = await res.json();
+      if (products.length === 0) {
+        container.innerHTML = '<p style="color: var(--parchment-dim); grid-column: 1 / -1;">New pieces coming soon — message us on WhatsApp for current availability.</p>';
+        return;
+      }
+      container.innerHTML = products.map(renderProductCard).join('');
+    } catch (err) {
+      container.innerHTML = '<p style="color: var(--parchment-dim); grid-column: 1 / -1;">Could not load the collection right now. Please refresh, or message us directly on WhatsApp.</p>';
+    }
+  }
+
+  loadProducts();
+</script>
+</body>
+</html>

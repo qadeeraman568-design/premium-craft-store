@@ -86,6 +86,11 @@ if (productCount === 0) {
 }
 
 // ---------- Middleware ----------
+// Required so Express correctly detects HTTPS when running behind
+// Railway's proxy — without this, secure cookies silently fail to set,
+// which causes an instant logout loop after a successful login.
+app.set('trust proxy', 1);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -97,7 +102,8 @@ app.use(session({
   cookie: {
     maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production'
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax'
   }
 }));
 

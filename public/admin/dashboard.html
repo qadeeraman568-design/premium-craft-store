@@ -36,35 +36,55 @@
     color: #EFE7D8;
   }
   .btn:hover { background: rgba(176,141,87,0.1); }
-  .btn-primary {
-    background: #0E4B3A;
-    border-color: #16654F;
-  }
+  .btn-primary { background: #0E4B3A; border-color: #16654F; }
   .btn-primary:hover { background: #16654F; }
-  .btn-danger {
-    background: transparent;
-    border-color: rgba(200,80,80,0.4);
-    color: #ff9999;
-  }
+  .btn-danger { background: transparent; border-color: rgba(200,80,80,0.4); color: #ff9999; }
   .btn-danger:hover { background: rgba(200,80,80,0.15); }
 
-  main {
+  /* ---------- Tabs ---------- */
+  .tabs {
+    display: flex;
+    gap: 4px;
     max-width: 1000px;
     margin: 0 auto;
-    padding: 32px 24px 80px;
+    padding: 16px 24px 0;
+  }
+  .tab-btn {
+    padding: 10px 18px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: #C9BFA9;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .tab-btn.active { color: #EFE7D8; border-bottom-color: #C9A961; }
+  .tab-btn:hover { color: #EFE7D8; }
+  .tab-badge {
+    display: inline-block;
+    background: #0E4B3A;
+    color: #EFE7D8;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 1px 7px;
+    border-radius: 10px;
+    margin-left: 6px;
   }
 
+  main { max-width: 1000px; margin: 0 auto; padding: 24px 24px 80px; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
   .toolbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    display: flex; justify-content: space-between; align-items: center;
     margin-bottom: 24px;
   }
   .toolbar h2 { font-size: 20px; }
   .toolbar p { color: #C9BFA9; font-size: 14px; margin-top: 4px; }
 
-  .product-list { display: flex; flex-direction: column; gap: 14px; }
-  .product-row {
+  .product-list, .category-list, .order-list { display: flex; flex-direction: column; gap: 14px; }
+  .product-row, .category-row, .order-row {
     background: #1C1814;
     border: 1px solid rgba(176,141,87,0.18);
     border-radius: 6px;
@@ -77,15 +97,12 @@
     width: 64px; height: 64px;
     border-radius: 4px;
     background: linear-gradient(150deg, #2c2418, #16120d);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 28px;
-    color: rgba(201,169,97,0.6);
-    flex-shrink: 0;
-    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; color: rgba(201,169,97,0.6);
+    flex-shrink: 0; overflow: hidden;
   }
   .thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .thumb.small { width: 48px; height: 48px; font-size: 22px; }
 
   .row-info { flex: 1; min-width: 0; }
   .row-info h3 { font-size: 15px; margin-bottom: 2px; }
@@ -104,42 +121,63 @@
   }
   .row-actions button:hover { background: rgba(176,141,87,0.1); }
 
-  .empty-state {
-    text-align: center;
-    padding: 60px 20px;
-    color: #C9BFA9;
+  .empty-state { text-align: center; padding: 60px 20px; color: #C9BFA9; }
+
+  /* ---------- Orders specific ---------- */
+  .order-row { flex-direction: column; align-items: stretch; gap: 10px; }
+  .order-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .order-customer { font-size: 15px; font-weight: 600; }
+  .order-phone { font-size: 13px; color: #C9BFA9; margin-top: 2px; }
+  .order-date { font-size: 12px; color: #8a7a63; }
+  .order-total { font-family: monospace; font-size: 16px; color: #C9A961; font-weight: 600; }
+  .order-address { font-size: 13px; color: #C9BFA9; line-height: 1.5; }
+  .order-items { font-size: 13px; color: #EFE7D8; background: #15120F; border-radius: 4px; padding: 10px 12px; }
+  .order-items div { margin-bottom: 2px; }
+  .order-notes { font-size: 13px; color: #C9A961; font-style: italic; }
+  .order-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+  .status-select {
+    background: #15120F;
+    border: 1px solid rgba(176,141,87,0.3);
+    color: #EFE7D8;
+    padding: 7px 10px;
+    border-radius: 4px;
+    font-size: 13px;
   }
+  .status-pill {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 3px 10px;
+    border-radius: 12px;
+  }
+  .status-pending { background: rgba(201,169,97,0.2); color: #C9A961; }
+  .status-confirmed { background: rgba(80,140,200,0.2); color: #7ab3e6; }
+  .status-shipped { background: rgba(150,100,220,0.2); color: #b394e8; }
+  .status-delivered { background: rgba(80,180,100,0.2); color: #7ed699; }
+  .status-cancelled { background: rgba(200,80,80,0.2); color: #ff9999; }
 
   /* Modal */
   .modal-overlay {
     position: fixed; inset: 0;
     background: rgba(0,0,0,0.6);
     display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-    padding: 20px;
+    align-items: center; justify-content: center;
+    z-index: 100; padding: 20px;
   }
   .modal-overlay.open { display: flex; }
   .modal {
     background: #1C1814;
     border: 1px solid rgba(176,141,87,0.3);
     border-radius: 8px;
-    width: 100%;
-    max-width: 480px;
-    max-height: 90vh;
-    overflow-y: auto;
+    width: 100%; max-width: 480px;
+    max-height: 90vh; overflow-y: auto;
     padding: 28px;
   }
   .modal h2 { font-size: 18px; margin-bottom: 20px; }
   .field { margin-bottom: 16px; }
-  .field label {
-    display: block;
-    font-size: 13px;
-    color: #C9A961;
-    margin-bottom: 6px;
-  }
-  .field input, .field textarea {
+  .field label { display: block; font-size: 13px; color: #C9A961; margin-bottom: 6px; }
+  .field input, .field textarea, .field select {
     width: 100%;
     padding: 10px 12px;
     background: #15120F;
@@ -150,61 +188,57 @@
     font-family: inherit;
   }
   .field textarea { resize: vertical; min-height: 70px; }
-  .field input:focus, .field textarea:focus { outline: 2px solid #C9A961; }
+  .field input:focus, .field textarea:focus, .field select:focus { outline: 2px solid #C9A961; }
   .field-hint { font-size: 12px; color: #C9BFA9; margin-top: 4px; }
 
   .image-preview {
-    width: 100%;
-    aspect-ratio: 1;
-    max-width: 160px;
+    width: 100%; aspect-ratio: 1; max-width: 160px;
     border-radius: 4px;
     background: #15120F;
     border: 1px dashed rgba(176,141,87,0.3);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    margin-bottom: 10px;
-    color: #C9BFA9;
-    font-size: 13px;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden; margin-bottom: 10px;
+    color: #C9BFA9; font-size: 13px;
   }
   .image-preview img { width: 100%; height: 100%; object-fit: cover; }
 
-  .modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 24px;
+  .glyph-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    margin-top: 8px;
   }
+  .glyph-option {
+    aspect-ratio: 1;
+    background: #15120F;
+    border: 1px solid rgba(176,141,87,0.3);
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    cursor: pointer;
+  }
+  .glyph-option.selected { border-color: #C9A961; background: rgba(201,169,97,0.15); }
 
+  .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
   .modal-error {
     background: rgba(180,60,60,0.15);
     border: 1px solid rgba(180,60,60,0.4);
     color: #ffb3b3;
-    padding: 10px 14px;
-    border-radius: 4px;
-    font-size: 13px;
-    margin-top: 14px;
-    display: none;
+    padding: 10px 14px; border-radius: 4px; font-size: 13px;
+    margin-top: 14px; display: none;
   }
-
   .toast {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    background: #0E4B3A;
-    border: 1px solid #16654F;
-    color: #EFE7D8;
-    padding: 14px 20px;
-    border-radius: 6px;
-    font-size: 14px;
-    z-index: 200;
-    display: none;
+    position: fixed; bottom: 24px; right: 24px;
+    background: #0E4B3A; border: 1px solid #16654F; color: #EFE7D8;
+    padding: 14px 20px; border-radius: 6px; font-size: 14px;
+    z-index: 200; display: none;
   }
 
   @media (max-width: 600px) {
-    .product-row { flex-wrap: wrap; }
+    .product-row, .category-row { flex-wrap: wrap; }
     .row-actions { width: 100%; justify-content: flex-start; margin-top: 8px; }
+    .tabs { overflow-x: auto; }
+    .order-top { flex-direction: column; gap: 6px; }
   }
 </style>
 </head>
@@ -218,17 +252,52 @@
   </div>
 </header>
 
+<div class="tabs">
+  <button class="tab-btn active" data-tab="products">Products</button>
+  <button class="tab-btn" data-tab="categories">Categories</button>
+  <button class="tab-btn" data-tab="orders">Orders <span class="tab-badge" id="ordersBadge" style="display:none;">0</span></button>
+</div>
+
 <main>
-  <div class="toolbar">
-    <div>
-      <h2>Your Products</h2>
-      <p>Add, edit, or remove products. Changes appear on your live site right away.</p>
+  <!-- ===== PRODUCTS TAB ===== -->
+  <div class="tab-panel active" id="panel-products">
+    <div class="toolbar">
+      <div>
+        <h2>Your Products</h2>
+        <p>Add, edit, or remove products. Changes appear on your live site right away.</p>
+      </div>
+      <button class="btn btn-primary" id="addProductBtn">+ Add Product</button>
     </div>
-    <button class="btn btn-primary" id="addProductBtn">+ Add Product</button>
+    <div class="product-list" id="productList">
+      <div class="empty-state">Loading products…</div>
+    </div>
   </div>
 
-  <div class="product-list" id="productList">
-    <div class="empty-state">Loading products…</div>
+  <!-- ===== CATEGORIES TAB ===== -->
+  <div class="tab-panel" id="panel-categories">
+    <div class="toolbar">
+      <div>
+        <h2>Categories</h2>
+        <p>These appear as the round icons on your storefront. Assign products to a category from the Products tab.</p>
+      </div>
+      <button class="btn btn-primary" id="addCategoryBtn">+ Add Category</button>
+    </div>
+    <div class="category-list" id="categoryList">
+      <div class="empty-state">Loading categories…</div>
+    </div>
+  </div>
+
+  <!-- ===== ORDERS TAB ===== -->
+  <div class="tab-panel" id="panel-orders">
+    <div class="toolbar">
+      <div>
+        <h2>Orders</h2>
+        <p>Orders placed through your storefront's Cash on Delivery checkout.</p>
+      </div>
+    </div>
+    <div class="order-list" id="orderList">
+      <div class="empty-state">Loading orders…</div>
+    </div>
   </div>
 </main>
 
@@ -248,8 +317,10 @@
         <input type="text" id="nameInput" placeholder="e.g. The Maqam Wall Clock" required>
       </div>
       <div class="field">
-        <label for="tagInput">Category Tag</label>
-        <input type="text" id="tagInput" placeholder="e.g. Wall Clock · Sheesham">
+        <label for="categorySelect">Category</label>
+        <select id="categorySelect">
+          <option value="">No category</option>
+        </select>
       </div>
       <div class="field">
         <label for="descInput">Description</label>
@@ -263,6 +334,28 @@
       <div class="modal-actions">
         <button type="button" class="btn" id="cancelBtn">Cancel</button>
         <button type="submit" class="btn btn-primary" id="saveBtn">Save Product</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Add/Edit Category Modal -->
+<div class="modal-overlay" id="categoryModalOverlay">
+  <div class="modal">
+    <h2 id="categoryModalTitle">Add Category</h2>
+    <form id="categoryForm">
+      <div class="field">
+        <label for="categoryNameInput">Category Name *</label>
+        <input type="text" id="categoryNameInput" placeholder="e.g. Wall Clock" required>
+      </div>
+      <div class="field">
+        <label>Icon</label>
+        <div class="glyph-grid" id="glyphGrid"></div>
+      </div>
+      <div class="modal-error" id="categoryModalError"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn" id="categoryCancelBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="categorySaveBtn">Save Category</button>
       </div>
     </form>
   </div>
@@ -294,8 +387,10 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  let editingId = null;
-  let currentImagePath = null;
+  const GLYPH_OPTIONS = ['⊙', '۩', '۞', '✦', '◐', '◈', '✧', '◆', '⬡', '❖', '✺', '☥'];
+  let editingProductId = null;
+  let editingCategoryId = null;
+  let categoriesCache = [];
 
   // ---------- Auth check ----------
   async function checkAuth() {
@@ -313,7 +408,23 @@
     setTimeout(() => { toast.style.display = 'none'; }, 2500);
   }
 
-  // ---------- Load products ----------
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
+  }
+
+  // ---------- Tabs ----------
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  // ================= PRODUCTS =================
   async function loadProducts() {
     const res = await fetch('/api/admin/products');
     const products = await res.json();
@@ -333,7 +444,7 @@
         </div>
         <div class="row-info">
           <h3>${escapeHtml(p.name)}</h3>
-          <div class="tag">${escapeHtml(p.tag || '')}</div>
+          <div class="tag">${p.categories ? escapeHtml(p.categories.name) : 'No category'}</div>
           <div class="price">PKR ${Number(p.price).toLocaleString()}</div>
         </div>
         <div class="row-actions">
@@ -344,13 +455,12 @@
     `).join('');
   }
 
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str || '';
-    return div.innerHTML;
+  async function populateCategorySelect(selectedId) {
+    const select = document.getElementById('categorySelect');
+    select.innerHTML = '<option value="">No category</option>' +
+      categoriesCache.map(c => `<option value="${c.id}" ${c.id === selectedId ? 'selected' : ''}>${escapeHtml(c.name)}</option>`).join('');
   }
 
-  // ---------- Modal control ----------
   const modalOverlay = document.getElementById('modalOverlay');
   const modalTitle = document.getElementById('modalTitle');
   const productForm = document.getElementById('productForm');
@@ -358,95 +468,81 @@
   const imagePreview = document.getElementById('imagePreview');
   const imageInput = document.getElementById('imageInput');
 
-  function openModal(title) {
+  function openProductModal(title) {
     modalTitle.textContent = title;
     modalError.style.display = 'none';
     modalOverlay.classList.add('open');
   }
-  function closeModal() {
+  function closeProductModal() {
     modalOverlay.classList.remove('open');
     productForm.reset();
     imagePreview.innerHTML = 'No photo yet';
-    editingId = null;
-    currentImagePath = null;
+    editingProductId = null;
   }
 
   document.getElementById('addProductBtn').addEventListener('click', () => {
-    editingId = null;
-    openModal('Add Product');
+    editingProductId = null;
+    populateCategorySelect(null);
+    openProductModal('Add Product');
   });
-  document.getElementById('cancelBtn').addEventListener('click', closeModal);
+  document.getElementById('cancelBtn').addEventListener('click', closeProductModal);
 
   imageInput.addEventListener('change', () => {
     const file = imageInput.files[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (e) => {
-        imagePreview.innerHTML = `<img src="${e.target.result}" alt="preview">`;
-      };
+      reader.onload = (e) => { imagePreview.innerHTML = `<img src="${e.target.result}" alt="preview">`; };
       reader.readAsDataURL(file);
     }
   });
 
-  // ---------- Edit ----------
   window.editProduct = async function(id) {
     const res = await fetch('/api/admin/products');
     const products = await res.json();
     const p = products.find(x => x.id === id);
     if (!p) return;
 
-    editingId = id;
-    currentImagePath = p.image_path;
+    editingProductId = id;
     document.getElementById('nameInput').value = p.name;
-    document.getElementById('tagInput').value = p.tag || '';
     document.getElementById('descInput').value = p.description || '';
     document.getElementById('priceInput').value = p.price;
-    imagePreview.innerHTML = p.image_path
-      ? `<img src="${p.image_path}" alt="current">`
-      : 'No photo yet';
+    populateCategorySelect(p.category_id);
+    imagePreview.innerHTML = p.image_path ? `<img src="${p.image_path}" alt="current">` : 'No photo yet';
 
-    openModal('Edit Product');
+    openProductModal('Edit Product');
   };
 
-  // ---------- Delete ----------
   window.deleteProduct = async function(id) {
     if (!confirm('Delete this product? This cannot be undone.')) return;
     const res = await fetch(`/api/admin/products/${id}`, { method: 'DELETE' });
-    if (res.ok) {
-      showToast('Product deleted');
-      loadProducts();
-    } else {
-      alert('Could not delete product. Try again.');
-    }
+    if (res.ok) { showToast('Product deleted'); loadProducts(); }
+    else { alert('Could not delete product. Try again.'); }
   };
 
-  // ---------- Save (Add or Edit) ----------
   productForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     modalError.style.display = 'none';
 
     const formData = new FormData();
     formData.append('name', document.getElementById('nameInput').value);
-    formData.append('tag', document.getElementById('tagInput').value);
+    formData.append('category_id', document.getElementById('categorySelect').value);
     formData.append('description', document.getElementById('descInput').value);
     formData.append('price', document.getElementById('priceInput').value);
-    if (imageInput.files[0]) {
-      formData.append('image', imageInput.files[0]);
-    }
+    if (imageInput.files[0]) formData.append('image', imageInput.files[0]);
 
     const saveBtn = document.getElementById('saveBtn');
     saveBtn.disabled = true;
     saveBtn.textContent = 'Saving...';
 
     try {
-      const url = editingId ? `/api/admin/products/${editingId}` : '/api/admin/products';
-      const method = editingId ? 'PUT' : 'POST';
+      const url = editingProductId ? `/api/admin/products/${editingProductId}` : '/api/admin/products';
+      const method = editingProductId ? 'PUT' : 'POST';
       const res = await fetch(url, { method, body: formData });
       const data = await res.json();
 
       if (res.ok) {
-        showToast(editingId ? 'Product updated' : 'Product added');
-        closeModal();
+        showToast(editingProductId ? 'Product updated' : 'Product added');
+        closeProductModal();
         loadProducts();
       } else {
         modalError.textContent = data.error || 'Something went wrong';
@@ -461,13 +557,219 @@
     }
   });
 
-  // ---------- Logout ----------
+  // ================= CATEGORIES =================
+  async function loadCategories() {
+    const res = await fetch('/api/admin/categories');
+    categoriesCache = await res.json();
+    renderCategories();
+  }
+
+  function renderCategories() {
+    const list = document.getElementById('categoryList');
+    if (categoriesCache.length === 0) {
+      list.innerHTML = '<div class="empty-state">No categories yet. Click "+ Add Category" to create your first one.</div>';
+      return;
+    }
+    list.innerHTML = categoriesCache.map(c => `
+      <div class="category-row" data-id="${c.id}">
+        <div class="thumb small">${c.glyph || '◈'}</div>
+        <div class="row-info">
+          <h3>${escapeHtml(c.name)}</h3>
+        </div>
+        <div class="row-actions">
+          <button onclick="editCategory(${c.id})">Edit</button>
+          <button onclick="deleteCategory(${c.id})">Delete</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function renderGlyphGrid(selected) {
+    const grid = document.getElementById('glyphGrid');
+    grid.innerHTML = GLYPH_OPTIONS.map(g => `
+      <div class="glyph-option ${g === selected ? 'selected' : ''}" data-glyph="${g}" onclick="selectGlyph('${g}')">${g}</div>
+    `).join('');
+  }
+
+  window.selectGlyph = function(glyph) {
+    document.querySelectorAll('.glyph-option').forEach(el => {
+      el.classList.toggle('selected', el.dataset.glyph === glyph);
+    });
+  };
+
+  function getSelectedGlyph() {
+    const selected = document.querySelector('.glyph-option.selected');
+    return selected ? selected.dataset.glyph : GLYPH_OPTIONS[0];
+  }
+
+  const categoryModalOverlay = document.getElementById('categoryModalOverlay');
+  const categoryForm = document.getElementById('categoryForm');
+  const categoryModalError = document.getElementById('categoryModalError');
+
+  function openCategoryModal(title) {
+    document.getElementById('categoryModalTitle').textContent = title;
+    categoryModalError.style.display = 'none';
+    categoryModalOverlay.classList.add('open');
+  }
+  function closeCategoryModal() {
+    categoryModalOverlay.classList.remove('open');
+    categoryForm.reset();
+    editingCategoryId = null;
+  }
+
+  document.getElementById('addCategoryBtn').addEventListener('click', () => {
+    editingCategoryId = null;
+    renderGlyphGrid(GLYPH_OPTIONS[0]);
+    openCategoryModal('Add Category');
+  });
+  document.getElementById('categoryCancelBtn').addEventListener('click', closeCategoryModal);
+
+  window.editCategory = function(id) {
+    const c = categoriesCache.find(x => x.id === id);
+    if (!c) return;
+    editingCategoryId = id;
+    document.getElementById('categoryNameInput').value = c.name;
+    renderGlyphGrid(c.glyph);
+    openCategoryModal('Edit Category');
+  };
+
+  window.deleteCategory = async function(id) {
+    if (!confirm('Delete this category? Products using it will become "No category" — they will not be deleted.')) return;
+    const res = await fetch(`/api/admin/categories/${id}`, { method: 'DELETE' });
+    if (res.ok) {
+      showToast('Category deleted');
+      loadCategories();
+      loadProducts(); // refresh in case a product's category badge needs to update
+    } else {
+      const data = await res.json();
+      alert(data.error || 'Could not delete category.');
+    }
+  };
+
+  categoryForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    categoryModalError.style.display = 'none';
+
+    const payload = {
+      name: document.getElementById('categoryNameInput').value,
+      glyph: getSelectedGlyph()
+    };
+
+    const saveBtn = document.getElementById('categorySaveBtn');
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving...';
+
+    try {
+      const url = editingCategoryId ? `/api/admin/categories/${editingCategoryId}` : '/api/admin/categories';
+      const method = editingCategoryId ? 'PUT' : 'POST';
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        showToast(editingCategoryId ? 'Category updated' : 'Category added');
+        closeCategoryModal();
+        loadCategories();
+      } else {
+        categoryModalError.textContent = data.error || 'Something went wrong';
+        categoryModalError.style.display = 'block';
+      }
+    } catch (err) {
+      categoryModalError.textContent = 'Could not connect to server. Try again.';
+      categoryModalError.style.display = 'block';
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save Category';
+    }
+  });
+
+  // ================= ORDERS =================
+  const STATUS_OPTIONS = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'];
+
+  async function loadOrders() {
+    const res = await fetch('/api/admin/orders');
+    const orders = await res.json();
+    renderOrders(orders);
+    updateOrdersBadge(orders);
+  }
+
+  function updateOrdersBadge(orders) {
+    const pendingCount = orders.filter(o => o.status === 'pending').length;
+    const badge = document.getElementById('ordersBadge');
+    if (pendingCount > 0) {
+      badge.style.display = 'inline-block';
+      badge.textContent = pendingCount;
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  function renderOrders(orders) {
+    const list = document.getElementById('orderList');
+    if (orders.length === 0) {
+      list.innerHTML = '<div class="empty-state">No orders yet. They will appear here as customers check out.</div>';
+      return;
+    }
+    list.innerHTML = orders.map(o => {
+      const date = new Date(o.created_at).toLocaleString('en-PK', { dateStyle: 'medium', timeStyle: 'short' });
+      const itemsHtml = (o.items || []).map(i => `<div>${i.quantity}x ${escapeHtml(i.name)} — PKR ${Number(i.price * i.quantity).toLocaleString()}</div>`).join('');
+      const statusOptionsHtml = STATUS_OPTIONS.map(s =>
+        `<option value="${s}" ${s === o.status ? 'selected' : ''}>${s.charAt(0).toUpperCase() + s.slice(1)}</option>`
+      ).join('');
+
+      return `
+        <div class="order-row" data-id="${o.id}">
+          <div class="order-top">
+            <div>
+              <div class="order-customer">${escapeHtml(o.customer_name)}</div>
+              <div class="order-phone">${escapeHtml(o.customer_phone)}</div>
+            </div>
+            <div style="text-align:right;">
+              <div class="order-total">PKR ${Number(o.total_amount).toLocaleString()}</div>
+              <div class="order-date">${date}</div>
+            </div>
+          </div>
+          <div class="order-address">📍 ${escapeHtml(o.customer_address)}</div>
+          ${o.notes ? `<div class="order-notes">Note: ${escapeHtml(o.notes)}</div>` : ''}
+          <div class="order-items">${itemsHtml}</div>
+          <div class="order-bottom">
+            <span class="status-pill status-${o.status}">${o.status}</span>
+            <select class="status-select" onchange="updateOrderStatus(${o.id}, this.value)">
+              ${statusOptionsHtml}
+            </select>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  window.updateOrderStatus = async function(orderId, newStatus) {
+    try {
+      const res = await fetch(`/api/admin/orders/${orderId}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (res.ok) {
+        showToast('Order status updated');
+        loadOrders();
+      } else {
+        alert('Could not update order status.');
+      }
+    } catch (err) {
+      alert('Could not connect to server.');
+    }
+  };
+
+  // ================= LOGOUT & PASSWORD =================
   document.getElementById('logoutBtn').addEventListener('click', async () => {
     await fetch('/api/admin/logout', { method: 'POST' });
     window.location.href = '/admin/index.html';
   });
 
-  // ---------- Change Password ----------
   const passOverlay = document.getElementById('passOverlay');
   const passForm = document.getElementById('passForm');
   const passError = document.getElementById('passError');
@@ -504,8 +806,9 @@
     }
   });
 
-  // ---------- Init ----------
-  loadProducts();
+  // ================= INIT =================
+  loadCategories().then(loadProducts);
+  loadOrders();
 </script>
 </body>
 </html>

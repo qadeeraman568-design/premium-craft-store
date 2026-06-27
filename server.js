@@ -200,7 +200,7 @@ app.get('/api/products', async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('products')
-      .select('*')
+      .select('*, categories(id, name, glyph)')
       .order('sort_order', { ascending: true })
       .order('id', { ascending: true });
     if (error) throw error;
@@ -211,12 +211,89 @@ app.get('/api/products', async (req, res) => {
   }
 });
 
+// ---------- PUBLIC CATEGORIES API (storefront circles read this) ----------
+app.get('/api/categories', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*')
+      .order('sort_order', { ascending: true })
+      .order('id', { ascending: true });
+    if (error) throw error;
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Could not load categories' });
+  }
+});
+
+// ---------- PUBLIC ORDERS API (checkout submits here) ----------
+app.post('/api/orders', async (req, res) => {
+  try {
+    const { customer_name, customer_phone, customer_address, notes, items } = req.body;
+
+    if (!customer_name || !customer_phone || !customer_address) {
+      return res.status(400).json({ error: 'Name, phone, and address are required' });
+    }
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ error: 'Cart is empty' });
+    }
+
+    // Recalculate the total on the server from real product prices —
+    // never trust a total sent from the browser, since it could be tampered with.
+    const productIds = items.map(i => i.product_id);
+    const { data: realProducts, error: productsErr } = await supabase
+      .from('products')
+      .select('id, name, price')
+      .in('id', productIds);
+    if (productsErr) throw productsErr;
+
+    let total = 0;
+    const verifiedItems = [];
+    for (const item of items) {
+      const realProduct = realProducts.find(p => p.id === item.product_id);
+      if (!realProduct) {
+        return res.status(400).json({ error: `Product ${item.product_id} no longer exists` });
+      }
+      const quantity = Math.max(1, parseInt(item.quantity, 10) || 1);
+      total += realProduct.price * quantity;
+      verifiedItems.push({
+        product_id: realProduct.id,
+        name: realProduct.name,
+        price: realProduct.price,
+        quantity
+      });
+    }
+
+    const { data: order, error: orderErr } = await supabase
+      .from('orders')
+      .insert({
+        customer_name,
+        customer_phone,
+        customer_address,
+        notes: notes || '',
+        items: verifiedItems,
+        total_amount: total,
+        payment_method: 'cod',
+        status: 'pending'
+      })
+      .select()
+      .single(); // safe here: insert().select() always returns exactly the row just created
+
+    if (orderErr) throw orderErr;
+    res.json(order);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Could not place order. Please try again or message us on WhatsApp.' });
+  }
+});
+
 // ---------- ADMIN PRODUCT API (requires login) ----------
 app.get('/api/admin/products', requireAuth, async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('products')
-      .select('*')
+      .select('*, categories(id, name, glyph)')
       .order('sort_order', { ascending: true })
       .order('id', { ascending: true });
     if (error) throw error;
@@ -229,7 +306,7 @@ app.get('/api/admin/products', requireAuth, async (req, res) => {
 
 app.post('/api/admin/products', requireAuth, upload.single('image'), async (req, res) => {
   try {
-    const { name, tag, description, price, glyph } = req.body;
+    const { name, category_id, description, price, glyph } = req.body;
     if (!name || !price) {
       return res.status(400).json({ error: 'Name and price are required' });
     }
@@ -255,11 +332,13 @@ app.post('/api/admin/products', requireAuth, upload.single('image'), async (req,
     const { data, error } = await supabase
       .from('products')
       .insert({
-        name, tag: tag || '', description: description || '',
+        name,
+        category_id: category_id ? parseInt(category_id, 10) : null,
+        description: description || '',
         price: priceNum, image_path: imagePath, glyph: glyph || '◈',
         sort_order: nextOrder
       })
-      .select()
+      .select('*, categories(id, name, glyph)')
       .single(); // safe here: insert().select() always returns exactly the row just created
 
     if (error) throw error;
@@ -273,11 +352,13 @@ app.post('/api/admin/products', requireAuth, upload.single('image'), async (req,
 app.put('/api/admin/products/:id', requireAuth, upload.single('image'), async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, tag, description, price, glyph } = req.body;
+    const { name, category_id, description, price, glyph } = req.body;
 
     const { data: existing, error: fetchErr } = await supabase
       .from('products').select('*').eq('id', id).maybeSingle();
     if (fetchErr || !existing) return res.status(404).json({ error: 'Product not found' });
+
+    const priceNum = price !== undefined ? parseInt(price, 10) : existing.price;
     if (isNaN(priceNum) || priceNum < 0) {
       return res.status(400).json({ error: 'Price must be a valid positive number' });
     }
@@ -293,14 +374,14 @@ app.put('/api/admin/products/:id', requireAuth, upload.single('image'), async (r
       .from('products')
       .update({
         name: name || existing.name,
-        tag: tag !== undefined ? tag : existing.tag,
+        category_id: category_id !== undefined ? (category_id ? parseInt(category_id, 10) : null) : existing.category_id,
         description: description !== undefined ? description : existing.description,
         price: priceNum,
         image_path: imagePath,
         glyph: glyph || existing.glyph
       })
       .eq('id', id)
-      .select()
+      .select('*, categories(id, name, glyph)')
       .single(); // safe here: 'existing' was already confirmed to exist above
 
     if (error) throw error;
@@ -338,6 +419,148 @@ app.put('/api/admin/products/:id/reorder', requireAuth, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Could not reorder product' });
+  }
+});
+
+// ---------- ADMIN CATEGORIES API ----------
+app.get('/api/admin/categories', requireAuth, async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*')
+      .order('sort_order', { ascending: true })
+      .order('id', { ascending: true });
+    if (error) throw error;
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Could not load categories' });
+  }
+});
+
+app.post('/api/admin/categories', requireAuth, async (req, res) => {
+  try {
+    const { name, glyph } = req.body;
+    if (!name || !name.trim()) {
+      return res.status(400).json({ error: 'Category name is required' });
+    }
+
+    const { data: maxRow } = await supabase
+      .from('categories')
+      .select('sort_order')
+      .order('sort_order', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const nextOrder = (maxRow?.sort_order || 0) + 1;
+
+    const { data, error } = await supabase
+      .from('categories')
+      .insert({ name: name.trim(), glyph: glyph || '◈', sort_order: nextOrder })
+      .select()
+      .single(); // safe here: insert().select() always returns exactly the row just created
+
+    if (error) {
+      if (error.code === '23505') {
+        return res.status(400).json({ error: 'A category with this name already exists' });
+      }
+      throw error;
+    }
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message || 'Could not save category' });
+  }
+});
+
+app.put('/api/admin/categories/:id', requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, glyph } = req.body;
+
+    const { data: existing, error: fetchErr } = await supabase
+      .from('categories').select('*').eq('id', id).maybeSingle();
+    if (fetchErr || !existing) return res.status(404).json({ error: 'Category not found' });
+
+    const { data, error } = await supabase
+      .from('categories')
+      .update({
+        name: name && name.trim() ? name.trim() : existing.name,
+        glyph: glyph || existing.glyph
+      })
+      .eq('id', id)
+      .select()
+      .single(); // safe here: 'existing' was already confirmed to exist above
+
+    if (error) {
+      if (error.code === '23505') {
+        return res.status(400).json({ error: 'A category with this name already exists' });
+      }
+      throw error;
+    }
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message || 'Could not update category' });
+  }
+});
+
+app.delete('/api/admin/categories/:id', requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { data: existing, error: fetchErr } = await supabase
+      .from('categories').select('*').eq('id', id).maybeSingle();
+    if (fetchErr || !existing) return res.status(404).json({ error: 'Category not found' });
+
+    // Products that used this category simply lose their category link
+    // (category_id becomes null) rather than being deleted themselves.
+    await supabase.from('products').update({ category_id: null }).eq('category_id', id);
+
+    const { error } = await supabase.from('categories').delete().eq('id', id);
+    if (error) throw error;
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message || 'Could not delete category' });
+  }
+});
+
+// ---------- ADMIN ORDERS API ----------
+app.get('/api/admin/orders', requireAuth, async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Could not load orders' });
+  }
+});
+
+app.put('/api/admin/orders/:id/status', requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const validStatuses = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ error: 'Invalid status value' });
+    }
+
+    const { data, error } = await supabase
+      .from('orders')
+      .update({ status })
+      .eq('id', id)
+      .select()
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) return res.status(404).json({ error: 'Order not found' });
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Could not update order status' });
   }
 });
 

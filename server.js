@@ -564,6 +564,210 @@ app.put('/api/admin/orders/:id/status', requireAuth, async (req, res) => {
   }
 });
 
+
+// ============================================================
+// FIELDPRO — Field Team API Endpoints
+// ============================================================
+
+// Field team login
+app.post('/api/field/login', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
+
+    const { data: user, error } = await supabase
+      .from('field_users')
+      .select('*')
+      .eq('username', username.trim())
+      .eq('is_active', true)
+      .maybeSingle();
+
+    if (error || !user) return res.status(401).json({ error: 'Invalid username or password' });
+
+    const hash = crypto.pbkdf2Sync(password, user.salt, 100000, 64, 'sha512').toString('hex');
+    if (hash !== user.password_hash) return res.status(401).json({ error: 'Invalid username or password' });
+
+    res.json({
+      user: {
+        id: user.id,
+        name: user.name,
+        username: user.username,
+        phone: user.phone,
+      }
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Login failed' });
+  }
+});
+
+// Get tasks assigned to a field user
+app.get('/api/field/tasks/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { data, error } = await supabase
+      .from('tasks')
+      .select(`
+        *,
+        stores ( name, address, latitude, longitude, cities ( name ) ),
+        projects ( name ),
+        clients ( name ),
+        orders ( order_number, name )
+      `)
+      .eq('field_user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    const tasks = (data || []).map(t => ({
+      id: t.id,
+      store_name: t.stores?.name,
+      store_id: t.store_id,
+      city_name: t.stores?.cities?.name,
+      address: t.stores?.address,
+      latitude: t.stores?.latitude,
+      longitude: t.stores?.longitude,
+      project_name: t.projects?.name,
+      client_name: t.clients?.name,
+      order_number: t.orders?.order_number,
+      task_number: t.task_number,
+      task_type: t.task_type,
+      task_date: t.task_date,
+      status: t.status,
+      field_user_id: t.field_user_id,
+    }));
+
+    res.json({ tasks });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Could not fetch tasks' });
+  }
+});
+
+// Update task status
+app.put('/api/field/tasks/:taskId/status', async (req, res) => {
+  try {
+    const { taskId } = req.params;
+    const { status } = req.body;
+    const { error } = await supabase
+      .from('tasks')
+      .update({ status, completed_at: status === 'complete' ? new Date().toISOString() : null })
+      .eq('id', taskId);
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Could not update task status' });
+  }
+});
+
+// Get assets for a task
+app.get('/api/field/tasks/:taskId/assets', async (req, res) => {
+  try {
+    const { taskId } = req.params;
+    const { data, error } = await supabase
+      .from('assets')
+      .select('*')
+      .eq('task_id', taskId)
+      .order('created_at', { ascending: true });
+    if (error) throw error;
+    res.json({ assets: data || [] });
+  } catch (err) {
+    res.status(500).json({ error: 'Could not fetch assets' });
+  }
+});
+
+// Update asset status
+app.put('/api/field/assets/:assetId/status', async (req, res) => {
+  try {
+    const { assetId } = req.params;
+    const { status } = req.body;
+    const { error } = await supabase
+      .from('assets')
+      .update({ status })
+      .eq('id', assetId);
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Could not update asset status' });
+  }
+});
+
+// Add repair item
+app.post('/api/field/repairs', async (req, res) => {
+  try {
+    const { asset_id, task_id, repair_type, width_mm, height_mm, depth_mm, length_mm, quantity, remarks, status } = req.body;
+    const { data, error } = await supabase
+      .from('repair_items')
+      .insert([{ asset_id, task_id, repair_type, width_mm, height_mm, depth_mm, length_mm, quantity, remarks, status }])
+      .select()
+      .single();
+    if (error) throw error;
+    res.json({ repair: data });
+  } catch (err) {
+    res.status(500).json({ error: 'Could not save repair item' });
+  }
+});
+
+// Get survey template for a task
+app.get('/api/field/tasks/:taskId/survey', async (req, res) => {
+  try {
+    const { taskId } = req.params;
+    const { data: task, error: taskError } = await supabase
+      .from('tasks')
+      .select('project_id, client_id')
+      .eq('id', taskId)
+      .maybeSingle();
+    if (taskError || !task) return res.status(404).json({ error: 'Task not found' });
+
+    const { data: template, error } = await supabase
+      .from('survey_templates')
+      .select('*, survey_fields ( * )')
+      .eq('project_id', task.project_id)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!template) return res.json({ template: null });
+
+    const fields = (template.survey_fields || []).sort((a, b) => a.sort_order - b.sort_order);
+    res.json({ template: { ...template, fields } });
+  } catch (err) {
+    res.status(500).json({ error: 'Could not fetch survey template' });
+  }
+});
+
+// Save survey response
+app.post('/api/field/survey/save', async (req, res) => {
+  try {
+    const { task_id, template_id, store_id, brand, field_user_id, answers, complete } = req.body;
+
+    const { data: response, error } = await supabase
+      .from('survey_responses')
+      .insert([{
+        task_id, template_id, store_id, brand, field_user_id,
+        status: complete ? 'complete' : 'in_progress',
+        submitted_at: complete ? new Date().toISOString() : null,
+      }])
+      .select()
+      .single(); // safe — fresh insert always returns one row
+    if (error) throw error;
+
+    if (answers && answers.length > 0) {
+      const answerRows = answers.map(a => ({
+        response_id: response.id,
+        field_id: a.field_id,
+        field_label: a.field_label,
+        answer_text: a.answer_text,
+        answer_image_path: a.answer_image_path,
+      }));
+      await supabase.from('survey_answers').insert(answerRows);
+    }
+
+    res.json({ success: true, response_id: response.id });
+  } catch (err) {
+    res.status(500).json({ error: 'Could not save survey' });
+  }
+});
+
 // ---------- Error handler for upload errors ----------
 app.use((err, req, res, next) => {
   if (err instanceof multer.MulterError || (err.message && err.message.includes('Only JPG'))) {

@@ -768,6 +768,343 @@ app.post('/api/field/survey/save', async (req, res) => {
   }
 });
 
+
+// ============================================================
+// FIELDPRO ADMIN — Management API Endpoints
+// ============================================================
+
+// --- Clients ---
+app.get('/api/fieldpro/clients', async (req, res) => {
+  try {
+    const { data, error } = await supabase.from('clients').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    res.json(data || []);
+  } catch (err) { res.status(500).json({ error: 'Could not fetch clients' }); }
+});
+
+app.post('/api/fieldpro/clients', async (req, res) => {
+  try {
+    const { name, username, password, email } = req.body;
+    if (!name || !username || !password) return res.status(400).json({ error: 'Name, username and password required' });
+    const salt = require('crypto').randomBytes(16).toString('hex');
+    const hash = require('crypto').pbkdf2Sync(password, salt, 100000, 64, 'sha512').toString('hex');
+    const { data, error } = await supabase.from('clients').insert([{ name, username, password_hash: hash, salt, email }]).select().single();
+    if (error) throw error;
+    res.json({ client: data });
+  } catch (err) { res.status(500).json({ error: 'Could not create client' }); }
+});
+
+app.delete('/api/fieldpro/clients/:id', async (req, res) => {
+  try {
+    const { error } = await supabase.from('clients').delete().eq('id', req.params.id);
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ error: 'Could not delete client' }); }
+});
+
+// --- Projects ---
+app.get('/api/fieldpro/projects', async (req, res) => {
+  try {
+    const { data, error } = await supabase.from('projects').select('*, clients(name)').order('created_at', { ascending: false });
+    if (error) throw error;
+    res.json((data || []).map(p => ({ ...p, client_name: p.clients?.name })));
+  } catch (err) { res.status(500).json({ error: 'Could not fetch projects' }); }
+});
+
+app.post('/api/fieldpro/projects', async (req, res) => {
+  try {
+    const { name, client_id, description } = req.body;
+    if (!name || !client_id) return res.status(400).json({ error: 'Name and client required' });
+    const { data, error } = await supabase.from('projects').insert([{ name, client_id, description }]).select().single();
+    if (error) throw error;
+    res.json({ project: data });
+  } catch (err) { res.status(500).json({ error: 'Could not create project' }); }
+});
+
+app.delete('/api/fieldpro/projects/:id', async (req, res) => {
+  try {
+    const { error } = await supabase.from('projects').delete().eq('id', req.params.id);
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ error: 'Could not delete project' }); }
+});
+
+// --- Orders ---
+app.get('/api/fieldpro/orders', async (req, res) => {
+  try {
+    const { data, error } = await supabase.from('orders').select('*, projects(name), clients(name)').order('created_at', { ascending: false });
+    if (error) throw error;
+    res.json((data || []).map(o => ({ ...o, project_name: o.projects?.name, client_name: o.clients?.name })));
+  } catch (err) { res.status(500).json({ error: 'Could not fetch orders' }); }
+});
+
+app.post('/api/fieldpro/orders', async (req, res) => {
+  try {
+    const { order_number, name, project_id, client_id } = req.body;
+    if (!order_number || !name || !project_id || !client_id) return res.status(400).json({ error: 'All fields required' });
+    const { data, error } = await supabase.from('orders').insert([{ order_number, name, project_id, client_id }]).select().single();
+    if (error) throw error;
+    res.json({ order: data });
+  } catch (err) { res.status(500).json({ error: 'Could not create order' }); }
+});
+
+app.delete('/api/fieldpro/orders/:id', async (req, res) => {
+  try {
+    const { error } = await supabase.from('orders').delete().eq('id', req.params.id);
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ error: 'Could not delete order' }); }
+});
+
+// --- Stores ---
+app.get('/api/fieldpro/stores', async (req, res) => {
+  try {
+    const { data, error } = await supabase.from('stores').select('*, cities(name)').order('name');
+    if (error) throw error;
+    res.json((data || []).map(s => ({ ...s, city_name: s.cities?.name })));
+  } catch (err) { res.status(500).json({ error: 'Could not fetch stores' }); }
+});
+
+app.post('/api/fieldpro/stores', async (req, res) => {
+  try {
+    const { name, city_id, address } = req.body;
+    if (!name || !city_id) return res.status(400).json({ error: 'Name and city required' });
+    const { data, error } = await supabase.from('stores').insert([{ name, city_id, address }]).select().single();
+    if (error) throw error;
+    res.json({ store: data });
+  } catch (err) { res.status(500).json({ error: 'Could not create store' }); }
+});
+
+app.delete('/api/fieldpro/stores/:id', async (req, res) => {
+  try {
+    const { error } = await supabase.from('stores').delete().eq('id', req.params.id);
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ error: 'Could not delete store' }); }
+});
+
+// --- Field Users ---
+app.get('/api/fieldpro/field-users', async (req, res) => {
+  try {
+    const { data, error } = await supabase.from('field_users').select('id,name,username,phone,is_active,created_at').order('name');
+    if (error) throw error;
+    res.json(data || []);
+  } catch (err) { res.status(500).json({ error: 'Could not fetch field users' }); }
+});
+
+app.post('/api/fieldpro/field-users', async (req, res) => {
+  try {
+    const { name, username, password, phone } = req.body;
+    if (!name || !username || !password) return res.status(400).json({ error: 'Name, username and password required' });
+    const salt = require('crypto').randomBytes(16).toString('hex');
+    const hash = require('crypto').pbkdf2Sync(password, salt, 100000, 64, 'sha512').toString('hex');
+    const { data, error } = await supabase.from('field_users').insert([{ name, username, password_hash: hash, salt, phone }]).select().single();
+    if (error) throw error;
+    res.json({ user: data });
+  } catch (err) { res.status(500).json({ error: 'Could not create field user' }); }
+});
+
+app.delete('/api/fieldpro/field-users/:id', async (req, res) => {
+  try {
+    const { error } = await supabase.from('field_users').delete().eq('id', req.params.id);
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ error: 'Could not delete field user' }); }
+});
+
+// --- Tasks (Admin) ---
+app.get('/api/fieldpro/tasks', async (req, res) => {
+  try {
+    const { data, error } = await supabase.from('tasks').select(`
+      *, stores(name, cities(name)), projects(name), clients(name),
+      orders(order_number), field_users(name)
+    `).order('created_at', { ascending: false });
+    if (error) throw error;
+    res.json((data || []).map(t => ({
+      ...t,
+      store_name: t.stores?.name,
+      city_name: t.stores?.cities?.name,
+      project_name: t.projects?.name,
+      client_name: t.clients?.name,
+      order_number: t.orders?.order_number,
+      field_user_name: t.field_users?.name,
+    })));
+  } catch (err) { res.status(500).json({ error: 'Could not fetch tasks' }); }
+});
+
+app.post('/api/fieldpro/tasks', async (req, res) => {
+  try {
+    const { store_id, order_id, field_user_id, task_type, task_date, task_number } = req.body;
+    if (!store_id || !order_id || !field_user_id) return res.status(400).json({ error: 'Store, order and field user required' });
+    const { data: order } = await supabase.from('orders').select('project_id, client_id').eq('id', order_id).maybeSingle();
+    const { data, error } = await supabase.from('tasks').insert([{
+      store_id, order_id, field_user_id, task_type, task_date, task_number,
+      project_id: order?.project_id, client_id: order?.client_id, status: 'assign'
+    }]).select().single();
+    if (error) throw error;
+    res.json({ task: data });
+  } catch (err) { res.status(500).json({ error: 'Could not create task' }); }
+});
+
+app.delete('/api/fieldpro/tasks/:id', async (req, res) => {
+  try {
+    const { error } = await supabase.from('tasks').delete().eq('id', req.params.id);
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ error: 'Could not delete task' }); }
+});
+
+// --- Survey Templates ---
+app.get('/api/fieldpro/survey-templates', async (req, res) => {
+  try {
+    const { data, error } = await supabase.from('survey_templates').select('*, projects(name), clients(name), survey_fields(id)').order('created_at', { ascending: false });
+    if (error) throw error;
+    res.json((data || []).map(t => ({ ...t, project_name: t.projects?.name, client_name: t.clients?.name, field_count: t.survey_fields?.length || 0 })));
+  } catch (err) { res.status(500).json({ error: 'Could not fetch templates' }); }
+});
+
+app.post('/api/fieldpro/survey-templates', async (req, res) => {
+  try {
+    const { name, project_id, client_id, fields } = req.body;
+    if (!name || !project_id || !client_id) return res.status(400).json({ error: 'Name, project and client required' });
+    const { data: template, error } = await supabase.from('survey_templates').insert([{ name, project_id, client_id }]).select().single();
+    if (error) throw error;
+    if (fields && fields.length > 0) {
+      const fieldRows = fields.map(f => ({ template_id: template.id, field_label: f.field_label, field_type: f.field_type, field_options: f.field_options, sort_order: f.sort_order }));
+      await supabase.from('survey_fields').insert(fieldRows);
+    }
+    res.json({ template });
+  } catch (err) { res.status(500).json({ error: 'Could not create template' }); }
+});
+
+app.delete('/api/fieldpro/survey-templates/:id', async (req, res) => {
+  try {
+    const { error } = await supabase.from('survey_templates').delete().eq('id', req.params.id);
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ error: 'Could not delete template' }); }
+});
+
+// --- Survey Responses (Admin) ---
+app.get('/api/fieldpro/survey-responses', async (req, res) => {
+  try {
+    const { data, error } = await supabase.from('survey_responses').select('*, stores(name), survey_templates(name), field_users(name)').order('created_at', { ascending: false });
+    if (error) throw error;
+    res.json((data || []).map(r => ({ ...r, store_name: r.stores?.name, template_name: r.survey_templates?.name, field_user_name: r.field_users?.name })));
+  } catch (err) { res.status(500).json({ error: 'Could not fetch responses' }); }
+});
+
+app.get('/api/fieldpro/survey-responses/:id', async (req, res) => {
+  try {
+    const { data, error } = await supabase.from('survey_responses').select('*, stores(name), survey_templates(name), field_users(name), survey_answers(*)').eq('id', req.params.id).maybeSingle();
+    if (error) throw error;
+    if (!data) return res.status(404).json({ error: 'Not found' });
+    res.json({ ...data, store_name: data.stores?.name, template_name: data.survey_templates?.name, field_user_name: data.field_users?.name, answers: data.survey_answers || [] });
+  } catch (err) { res.status(500).json({ error: 'Could not fetch response' }); }
+});
+
+// --- Repairs (Admin) ---
+app.get('/api/fieldpro/repairs', async (req, res) => {
+  try {
+    const { data, error } = await supabase.from('repair_items').select('*, assets(title)').order('created_at', { ascending: false });
+    if (error) throw error;
+    res.json((data || []).map(r => ({ ...r, asset_title: r.assets?.title })));
+  } catch (err) { res.status(500).json({ error: 'Could not fetch repairs' }); }
+});
+
+// ============================================================
+// CLIENT PORTAL — API Endpoints
+// ============================================================
+
+// Client login
+app.post('/api/client/login', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
+    const { data: client, error } = await supabase.from('clients').select('*').eq('username', username.trim()).eq('is_active', true).maybeSingle();
+    if (error || !client) return res.status(401).json({ error: 'Invalid username or password' });
+    const hash = require('crypto').pbkdf2Sync(password, client.salt, 100000, 64, 'sha512').toString('hex');
+    if (hash !== client.password_hash) return res.status(401).json({ error: 'Invalid username or password' });
+    req.session.client_id = client.id;
+    req.session.client_name = client.name;
+    res.json({ client: { id: client.id, name: client.name, username: client.username } });
+  } catch (err) { res.status(500).json({ error: 'Login failed' }); }
+});
+
+function requireClient(req, res, next) {
+  if (!req.session?.client_id) return res.status(401).json({ error: 'Not authenticated' });
+  next();
+}
+
+// Client tasks
+app.get('/api/client/tasks', requireClient, async (req, res) => {
+  try {
+    const { data, error } = await supabase.from('tasks').select(`
+      *, stores(name, cities(name)), projects(name), orders(order_number), field_users(name)
+    `).eq('client_id', req.session.client_id).order('created_at', { ascending: false });
+    if (error) throw error;
+    res.json((data || []).map(t => ({
+      ...t, store_name: t.stores?.name, city_name: t.stores?.cities?.name,
+      project_name: t.projects?.name, order_number: t.orders?.order_number, field_user_name: t.field_users?.name,
+    })));
+  } catch (err) { res.status(500).json({ error: 'Could not fetch tasks' }); }
+});
+
+// Client survey responses
+app.get('/api/client/survey-responses', requireClient, async (req, res) => {
+  try {
+    const { data, error } = await supabase.from('survey_responses').select('*, stores(name), survey_templates(name), field_users(name)').eq('task_id', supabase.from('tasks').select('id').eq('client_id', req.session.client_id)).order('created_at', { ascending: false });
+    // Simpler approach - get tasks first then responses
+    const { data: tasks } = await supabase.from('tasks').select('id').eq('client_id', req.session.client_id);
+    const taskIds = (tasks || []).map(t => t.id);
+    if (!taskIds.length) return res.json([]);
+    const { data: responses, error: rErr } = await supabase.from('survey_responses').select('*, stores(name), survey_templates(name), field_users(name)').in('task_id', taskIds).order('created_at', { ascending: false });
+    if (rErr) throw rErr;
+    res.json((responses || []).map(r => ({ ...r, store_name: r.stores?.name, template_name: r.survey_templates?.name, field_user_name: r.field_users?.name })));
+  } catch (err) { res.status(500).json({ error: 'Could not fetch responses' }); }
+});
+
+// Client single survey response
+app.get('/api/client/survey-responses/:id', requireClient, async (req, res) => {
+  try {
+    const { data, error } = await supabase.from('survey_responses').select('*, stores(name), survey_templates(name), field_users(name), survey_answers(*)').eq('id', req.params.id).maybeSingle();
+    if (error || !data) return res.status(404).json({ error: 'Not found' });
+    res.json({ ...data, store_name: data.stores?.name, template_name: data.survey_templates?.name, field_user_name: data.field_users?.name, answers: data.survey_answers || [] });
+  } catch (err) { res.status(500).json({ error: 'Could not fetch response' }); }
+});
+
+// Client repairs
+app.get('/api/client/repairs', requireClient, async (req, res) => {
+  try {
+    const { data: tasks } = await supabase.from('tasks').select('id').eq('client_id', req.session.client_id);
+    const taskIds = (tasks || []).map(t => t.id);
+    if (!taskIds.length) return res.json([]);
+    const { data, error } = await supabase.from('repair_items').select('*, assets(title), tasks(store_id), stores:tasks(store_id(name))').in('task_id', taskIds).order('created_at', { ascending: false });
+    if (error) throw error;
+    res.json((data || []).map(r => ({ ...r, asset_title: r.assets?.title })));
+  } catch (err) { res.status(500).json({ error: 'Could not fetch repairs' }); }
+});
+
+// Client stores
+app.get('/api/client/stores', requireClient, async (req, res) => {
+  try {
+    const { data: tasks } = await supabase.from('tasks').select('store_id, status').eq('client_id', req.session.client_id);
+    if (!tasks?.length) return res.json([]);
+    const storeIds = [...new Set(tasks.map(t => t.store_id))];
+    const { data: stores } = await supabase.from('stores').select('*, cities(name)').in('id', storeIds);
+    const { data: responses } = await supabase.from('survey_responses').select('store_id').in('task_id', tasks.map(t => t.store_id));
+    res.json((stores || []).map(s => {
+      const storeTasks = tasks.filter(t => t.store_id === s.id);
+      return {
+        ...s, city_name: s.cities?.name,
+        total_tasks: storeTasks.length,
+        complete_tasks: storeTasks.filter(t => t.status === 'complete').length,
+        survey_count: (responses || []).filter(r => r.store_id === s.id).length,
+      };
+    }));
+  } catch (err) { res.status(500).json({ error: 'Could not fetch stores' }); }
+});
+
 // ---------- Error handler for upload errors ----------
 app.use((err, req, res, next) => {
   if (err instanceof multer.MulterError || (err.message && err.message.includes('Only JPG'))) {

@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FieldPro — Admin Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F0F2F5;color:#1a1a2e}
+.login-page{min-height:100vh;background:#1B4F72;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-box{background:#fff;border-radius:12px;padding:40px;width:100%;max-width:400px}
+.login-logo{text-align:center;margin-bottom:28px}
+.logo-circle{width:64px;height:64px;border-radius:50%;background:#1B4F72;display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
+.logo-text{color:#fff;font-size:22px;font-weight:800}
+.login-title{font-size:22px;font-weight:700;color:#1B4F72}
+.login-sub{color:#888;font-size:13px;margin-top:4px}
+.login-err{background:#FADBD8;color:#922B21;padding:10px 14px;border-radius:6px;font-size:13px;margin-bottom:16px;display:none}
+.fg{margin-bottom:16px}
+.fg label{display:block;font-size:13px;font-weight:600;color:#555;margin-bottom:6px}
+.fg input,.fg select,.fg textarea{width:100%;padding:11px 13px;border:1px solid #DDE2E8;border-radius:8px;font-size:14px;background:#F8F9FA;font-family:inherit}
+.fg input:focus,.fg select:focus{outline:none;border-color:#1B4F72}
+.btn{padding:10px 18px;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;border:none;transition:opacity .2s}
+.btn:hover{opacity:.88}
+.btn-primary{background:#1B4F72;color:#fff;width:100%;padding:13px;font-size:15px}
+.btn-success{background:#1E8449;color:#fff}
+.btn-danger{background:#922B21;color:#fff}
+.btn-secondary{background:#E8EDF2;color:#333}
+.btn-sm{padding:6px 12px;font-size:12px;border-radius:6px}
+.app{display:none;min-height:100vh}
+.sidebar{position:fixed;top:0;left:0;width:240px;height:100vh;background:#1B4F72;overflow-y:auto;z-index:10;display:flex;flex-direction:column}
+.sb-brand{padding:22px 20px;border-bottom:1px solid rgba(255,255,255,.1)}
+.sb-brand-name{color:#fff;font-size:20px;font-weight:800}
+.sb-brand-sub{color:rgba(255,255,255,.6);font-size:11px;margin-top:2px}
+.sb-user{padding:14px 20px;background:rgba(0,0,0,.15);border-bottom:1px solid rgba(255,255,255,.1)}
+.sb-user-name{color:#fff;font-size:13px;font-weight:600}
+.sb-user-role{color:rgba(255,255,255,.5);font-size:11px}
+.sb-nav{padding:12px 0;flex:1}
+.nav-sec{padding:10px 20px 4px;font-size:10px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.8px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:11px 20px;cursor:pointer;color:rgba(255,255,255,.75);font-size:14px;font-weight:500;transition:background .15s}
+.nav-item:hover{background:rgba(255,255,255,.08);color:#fff}
+.nav-item.active{background:rgba(255,255,255,.15);color:#fff;border-right:3px solid #fff}
+.nav-icon{font-size:16px;width:20px;text-align:center}
+.nav-logout{padding:14px 20px;border-top:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);cursor:pointer;font-size:13px}
+.nav-logout:hover{color:#fff}
+.main{margin-left:240px;padding:28px;min-height:100vh}
+.ph{margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.pt{font-size:22px;font-weight:700;color:#1B4F72}
+.ps{font-size:13px;color:#888;margin-top:3px}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat-card{background:#fff;border-radius:10px;padding:20px;border-left:4px solid;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.stat-card.blue{border-color:#1B4F72}
+.stat-card.green{border-color:#1E8449}
+.stat-card.orange{border-color:#E67E22}
+.stat-card.red{border-color:#922B21}
+.sv{font-size:28px;font-weight:800;color:#1a1a2e}
+.sl{font-size:12px;color:#888;font-weight:600;margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
+.card{background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.06);overflow:hidden;margin-bottom:20px}
+.card-header{padding:16px 20px;border-bottom:1px solid #F0F0F0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.card-title{font-size:15px;font-weight:700;color:#1B4F72}
+table{width:100%;border-collapse:collapse}
+th{background:#F8F9FA;padding:11px 16px;text-align:left;font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px}
+td{padding:12px 16px;border-bottom:1px solid #F5F5F5;font-size:13px;color:#333;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#F8FBFF}
+.badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700}
+.badge-green{background:#D5F5E3;color:#1E8449}
+.badge-blue{background:#D6EAF8;color:#1B4F72}
+.badge-gray{background:#E8EDF2;color:#6C757D}
+.badge-orange{background:#FDEBD0;color:#E67E22}
+.actions{display:flex;gap:6px}
+.empty-state{text-align:center;padding:40px;color:#999;font-size:14px}
+.search-bar{padding:10px 16px;border-bottom:1px solid #F0F0F0}
+.search-bar input{width:100%;padding:9px 13px;border:1px solid #DDE2E8;border-radius:7px;font-size:13px;background:#F8F9FA}
+.alert{padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:13px;font-weight:600;display:none}
+.alert-success{background:#D5F5E3;color:#1E8449}
+.alert-error{background:#FADBD8;color:#922B21}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:12px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
+.modal-header{padding:20px 24px;border-bottom:1px solid #F0F0F0;display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:17px;font-weight:700;color:#1B4F72}
+.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:#888}
+.modal-body{padding:24px}
+.modal-footer{padding:16px 24px;border-top:1px solid #F0F0F0;display:flex;gap:10px;justify-content:flex-end}
+.page{display:none}
+.page.active{display:block}
+@media(max-width:768px){.sidebar{width:200px}.main{margin-left:200px;padding:16px}.stats-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<div class="login-page" id="loginPage">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="logo-circle"><span class="logo-text">FP</span></div>
+      <div class="login-title">FieldPro Admin</div>
+      <div class="login-sub">Management Dashboard</div>
+    </div>
+    <div class="login-err" id="loginErr"></div>
+    <div class="fg"><label>Username</label><input type="text" id="lu" placeholder="Admin username"></div>
+    <div class="fg"><label>Password</label><input type="password" id="lp" placeholder="Password"></div>
+    <button class="btn btn-primary" onclick="doLogin()">Sign In</button>
+  </div>
+</div>
+
+<div class="app" id="appLayout">
+  <div class="sidebar">
+    <div class="sb-brand"><div class="sb-brand-name">⚡ FieldPro</div><div class="sb-brand-sub">Admin Dashboard</div></div>
+    <div class="sb-user"><div class="sb-user-name" id="sidebarUser">Admin</div><div class="sb-user-role">Administrator</div></div>
+    <div class="sb-nav">
+      <div class="nav-sec">Overview</div>
+      <div class="nav-item active" onclick="showPage('dashboard')" id="nav-dashboard"><span class="nav-icon">🏠</span>Dashboard</div>
+      <div class="nav-sec">Management</div>
+      <div class="nav-item" onclick="showPage('clients')" id="nav-clients"><span class="nav-icon">🏢</span>Clients</div>
+      <div class="nav-item" onclick="showPage('projects')" id="nav-projects"><span class="nav-icon">📁</span>Projects</div>
+      <div class="nav-item" onclick="showPage('orders')" id="nav-orders"><span class="nav-icon">📋</span>Orders</div>
+      <div class="nav-item" onclick="showPage('stores')" id="nav-stores"><span class="nav-icon">🏪</span>Stores</div>
+      <div class="nav-sec">Field Operations</div>
+      <div class="nav-item" onclick="showPage('fieldusers')" id="nav-fieldusers"><span class="nav-icon">👤</span>Field Team</div>
+      <div class="nav-item" onclick="showPage('tasks')" id="nav-tasks"><span class="nav-icon">✅</span>Tasks</div>
+      <div class="nav-item" onclick="showPage('surveys')" id="nav-surveys"><span class="nav-icon">📝</span>Survey Templates</div>
+      <div class="nav-sec">Results</div>
+      <div class="nav-item" onclick="showPage('results')" id="nav-results"><span class="nav-icon">📊</span>Survey Results</div>
+      <div class="nav-item" onclick="showPage('repairs')" id="nav-repairs"><span class="nav-icon">🔧</span>Repair Items</div>
+    </div>
+    <div class="nav-logout" onclick="doLogout()">🚪 Log Out</div>
+  </div>
+
+  <div class="main">
+    <div class="page active" id="page-dashboard">
+      <div class="ph"><div><div class="pt">Dashboard</div><div class="ps">Overview of all field operations</div></div><button class="btn btn-success" onclick="loadDashboard()">🔄 Refresh</button></div>
+      <div class="stats-grid">
+        <div class="stat-card blue"><div class="sv" id="stat-clients">—</div><div class="sl">Clients</div></div>
+        <div class="stat-card green"><div class="sv" id="stat-tasks">—</div><div class="sl">Total Tasks</div></div>
+        <div class="stat-card orange"><div class="sv" id="stat-inprogress">—</div><div class="sl">In Progress</div></div>
+        <div class="stat-card red"><div class="sv" id="stat-complete">—</div><div class="sl">Completed</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Recent Tasks</span></div>
+        <table><thead><tr><th>Store</th><th>Client</th><th>Field User</th><th>Status</th><th>Date</th></tr></thead>
+        <tbody id="recent-tasks"><tr><td colspan="5" class="empty-state">Loading...</td></tr></tbody></table>
+      </div>
+    </div>
+
+    <div class="page" id="page-clients">
+      <div class="ph"><div><div class="pt">Clients</div><div class="ps">Manage clients and their portal access</div></div><button class="btn btn-success" onclick="openModal('clientModal')">＋ Add Client</button></div>
+      <div class="card"><div class="search-bar"><input type="text" placeholder="Search clients..." oninput="filterTable(this,'clientsBody')"></div>
+      <table><thead><tr><th>Name</th><th>Username</th><th>Email</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="clientsBody"><tr><td colspan="5" class="empty-state">Loading...</td></tr></tbody></table></div>
+    </div>
+
+    <div class="page" id="page-projects">
+      <div class="ph"><div><div class="pt">Projects</div><div class="ps">Manage projects per client</div></div><button class="btn btn-success" onclick="openModal('projectModal')">＋ Add Project</button></div>
+      <div class="card"><div class="search-bar"><input type="text" placeholder="Search projects..." oninput="filterTable(this,'projectsBody')"></div>
+      <table><thead><tr><th>Name</th><th>Client</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="projectsBody"><tr><td colspan="4" class="empty-state">Loading...</td></tr></tbody></table></div>
+    </div>
+
+    <div class="page" id="page-orders">
+      <div class="ph"><div><div class="pt">Orders</div><div class="ps">Manage orders per project</div></div><button class="btn btn-success" onclick="openModal('orderModal')">＋ Add Order</button></div>
+      <div class="card"><table><thead><tr><th>Order No</th><th>Name</th><th>Project</th><th>Client</th><th>Actions</th></tr></thead>
+      <tbody id="ordersBody"><tr><td colspan="5" class="empty-state">Loading...</td></tr></tbody></table></div>
+    </div>
+
+    <div class="page" id="page-stores">
+      <div class="ph"><div><div class="pt">Stores</div><div class="ps">Manage store locations</div></div><button class="btn btn-success" onclick="openModal('storeModal')">＋ Add Store</button></div>
+      <div class="card"><div class="search-bar"><input type="text" placeholder="Search stores..." oninput="filterTable(this,'storesBody')"></div>
+      <table><thead><tr><th>Store Name</th><th>City</th><th>Address</th><th>Actions</th></tr></thead>
+      <tbody id="storesBody"><tr><td colspan="4" class="empty-state">Loading...</td></tr></tbody></table></div>
+    </div>
+
+    <div class="page" id="page-fieldusers">
+      <div class="ph"><div><div class="pt">Field Team</div><div class="ps">Manage merchandisers and field staff</div></div><button class="btn btn-success" onclick="openModal('fieldUserModal')">＋ Add Member</button></div>
+      <div class="card"><table><thead><tr><th>Name</th><th>Username</th><th>Phone</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="fieldUsersBody"><tr><td colspan="5" class="empty-state">Loading...</td></tr></tbody></table></div>
+    </div>
+
+    <div class="page" id="page-tasks">
+      <div class="ph"><div><div class="pt">Tasks</div><div class="ps">Assign stores to field team members</div></div><button class="btn btn-success" onclick="openModal('taskModal')">＋ Assign Task</button></div>
+      <div class="card"><table><thead><tr><th>Store</th><th>Project</th><th>Client</th><th>Field User</th><th>Type</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="tasksBody"><tr><td colspan="8" class="empty-state">Loading...</td></tr></tbody></table></div>
+    </div>
+
+    <div class="page" id="page-surveys">
+      <div class="ph"><div><div class="pt">Survey Templates</div><div class="ps">Configure survey fields per project</div></div><button class="btn btn-success" onclick="openModal('surveyModal')">＋ Create Template</button></div>
+      <div class="card"><table><thead><tr><th>Template Name</th><th>Project</th><th>Client</th><th>Fields</th><th>Actions</th></tr></thead>
+      <tbody id="surveysBody"><tr><td colspan="5" class="empty-state">Loading...</td></tr></tbody></table></div>
+    </div>
+
+    <div class="page" id="page-results">
+      <div class="ph"><div><div class="pt">Survey Results</div><div class="ps">View completed survey responses</div></div></div>
+      <div class="card"><table><thead><tr><th>Store</th><th>Brand</th><th>Template</th><th>Field User</th><th>Status</th><th>Date</th></tr></thead>
+      <tbody id="resultsBody"><tr><td colspan="6" class="empty-state">Loading...</td></tr></tbody></table></div>
+    </div>
+
+    <div class="page" id="page-repairs">
+      <div class="ph"><div><div class="pt">Repair Items</div><div class="ps">All logged repair and inspection items</div></div></div>
+      <div class="card"><table><thead><tr><th>Asset</th><th>Repair Type</th><th>Qty</th><th>Status</th><th>Remarks</th><th>Date</th></tr></thead>
+      <tbody id="repairsBody"><tr><td colspan="6" class="empty-state">Loading...</td></tr></tbody></table></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="clientModal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Add Client</span><button class="modal-close" onclick="closeModal('clientModal')">×</button></div>
+    <div class="modal-body">
+      <div id="clientAlert" class="alert"></div>
+      <div class="fg"><label>Client Name *</label><input type="text" id="clientName" placeholder="e.g. Unilever Pakistan"></div>
+      <div class="fg"><label>Username * (portal login)</label><input type="text" id="clientUsername" placeholder="e.g. unilever"></div>
+      <div class="fg"><label>Password *</label><input type="password" id="clientPassword" placeholder="Set a login password"></div>
+      <div class="fg"><label>Email</label><input type="email" id="clientEmail" placeholder="client@company.com"></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('clientModal')">Cancel</button><button class="btn btn-success" onclick="saveClient()">Save Client</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="projectModal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Add Project</span><button class="modal-close" onclick="closeModal('projectModal')">×</button></div>
+    <div class="modal-body">
+      <div id="projectAlert" class="alert"></div>
+      <div class="fg"><label>Project Name *</label><input type="text" id="projectName" placeholder="e.g. 1:1 GM Project"></div>
+      <div class="fg"><label>Client *</label><select id="projectClient"><option value="">Select client...</option></select></div>
+      <div class="fg"><label>Description</label><textarea id="projectDesc" rows="3" placeholder="Project description..."></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('projectModal')">Cancel</button><button class="btn btn-success" onclick="saveProject()">Save Project</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="orderModal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Add Order</span><button class="modal-close" onclick="closeModal('orderModal')">×</button></div>
+    <div class="modal-body">
+      <div id="orderAlert" class="alert"></div>
+      <div class="fg"><label>Order Number *</label><input type="text" id="orderNumber" placeholder="e.g. 33474-Order"></div>
+      <div class="fg"><label>Order Name *</label><input type="text" id="orderName" placeholder="e.g. Agency Maintenance June 2025"></div>
+      <div class="fg"><label>Project *</label><select id="orderProject"><option value="">Select project...</option></select></div>
+      <div class="fg"><label>Client *</label><select id="orderClient"><option value="">Select client...</option></select></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('orderModal')">Cancel</button><button class="btn btn-success" onclick="saveOrder()">Save Order</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="storeModal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Add Store</span><button class="modal-close" onclick="closeModal('storeModal')">×</button></div>
+    <div class="modal-body">
+      <div id="storeAlert" class="alert"></div>
+      <div class="fg"><label>Store Name *</label><input type="text" id="storeName" placeholder="e.g. Ali Super Store (Bhatta Chowk)"></div>
+      <div class="fg"><label>City *</label><select id="storeCity"><option value="">Select city...</option></select></div>
+      <div class="fg"><label>Address</label><input type="text" id="storeAddress" placeholder="Full address"></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('storeModal')">Cancel</button><button class="btn btn-success" onclick="saveStore()">Save Store</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="fieldUserModal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Add Field Team Member</span><button class="modal-close" onclick="closeModal('fieldUserModal')">×</button></div>
+    <div class="modal-body">
+      <div id="fieldUserAlert" class="alert"></div>
+      <div class="fg"><label>Full Name *</label><input type="text" id="fieldUserName" placeholder="e.g. Ahmed Khan"></div>
+      <div class="fg"><label>Username * (app login)</label><input type="text" id="fieldUserUsername" placeholder="e.g. ahmed.khan"></div>
+      <div class="fg"><label>Password *</label><input type="password" id="fieldUserPassword" placeholder="Set app login password"></div>
+      <div class="fg"><label>Phone</label><input type="text" id="fieldUserPhone" placeholder="03001234567"></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('fieldUserModal')">Cancel</button><button class="btn btn-success" onclick="saveFieldUser()">Save</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="taskModal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Assign Task</span><button class="modal-close" onclick="closeModal('taskModal')">×</button></div>
+    <div class="modal-body">
+      <div id="taskAlert" class="alert"></div>
+      <div class="fg"><label>Store *</label><select id="taskStore"><option value="">Select store...</option></select></div>
+      <div class="fg"><label>Order *</label><select id="taskOrder"><option value="">Select order...</option></select></div>
+      <div class="fg"><label>Field Team Member *</label><select id="taskFieldUser"><option value="">Select field user...</option></select></div>
+      <div class="fg"><label>Task Type</label><input type="text" id="taskType" placeholder="e.g. Agency Repair and Maintenance"></div>
+      <div class="fg"><label>Task Date</label><input type="date" id="taskDate"></div>
+      <div class="fg"><label>Task Number</label><input type="text" id="taskNumber" placeholder="e.g. 171"></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('taskModal')">Cancel</button><button class="btn btn-success" onclick="saveTask()">Assign Task</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="surveyModal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header"><span class="modal-title">Create Survey Template</span><button class="modal-close" onclick="closeModal('surveyModal')">×</button></div>
+    <div class="modal-body">
+      <div id="surveyAlert" class="alert"></div>
+      <div class="fg"><label>Template Name *</label><input type="text" id="surveyName" placeholder="e.g. Shelf Survey June 2025"></div>
+      <div class="fg"><label>Project *</label><select id="surveyProject"><option value="">Select project...</option></select></div>
+      <div class="fg"><label>Client *</label><select id="surveyClient"><option value="">Select client...</option></select></div>
+      <div style="margin-bottom:12px;font-weight:700;font-size:13px;color:#1B4F72">Survey Fields</div>
+      <div id="sfContainer"></div>
+      <button class="btn btn-secondary btn-sm" onclick="addField()" style="margin-top:8px">＋ Add Field</button>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('surveyModal')">Cancel</button><button class="btn btn-success" onclick="saveSurvey()">Save Template</button></div>
+  </div>
+</div>
+
+<script>
+const SURL='https://mqyztslkowysliukgheh.supabase.co';
+const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1xeXp0c2xrb3d5c2xpdWtnaGVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIzNzQ1MjAsImV4cCI6MjA5Nzk1MDUyMH0.K8IAEgsDBUXs6-aeSYuTIfoQLrjPwHrkF0Yplx9dzZM';
+const RAIL='https://premium-craft-store-production.up.railway.app';
+const sb=supabase.createClient(SURL,SKEY);
+let admin=JSON.parse(sessionStorage.getItem('fp_admin')||'null');
+let sfn=0;
+
+async function doLogin(){
+  const u=document.getElementById('lu').value.trim();
+  const p=document.getElementById('lp').value;
+  if(!u||!p)return err('Please enter username and password.');
+  try{
+    const r=await fetch(`${RAIL}/api/admin/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p}),credentials:'include'});
+    const d=await r.json();
+    if(!r.ok)return err(d.error||'Login failed.');
+    admin={username:u};
+    sessionStorage.setItem('fp_admin',JSON.stringify(admin));
+    showApp();
+  }catch(e){err('Cannot connect to server.');}
+}
+function err(m){const e=document.getElementById('loginErr');e.textContent=m;e.style.display='block';}
+function showApp(){
+  document.getElementById('loginPage').style.display='none';
+  document.getElementById('appLayout').style.display='flex';
+  document.getElementById('sidebarUser').textContent=admin?.username||'Admin';
+  loadDashboard();
+}
+function doLogout(){sessionStorage.clear();location.reload();}
+
+function showPage(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  document.getElementById('nav-'+p).classList.add('active');
+  ({dashboard:loadDashboard,clients:loadClients,projects:loadProjects,orders:loadOrders,stores:loadStores,fieldusers:loadFieldUsers,tasks:loadTasks,surveys:loadSurveys,results:loadResults,repairs:loadRepairs})[p]?.();
+}
+
+async function loadDashboard(){
+  const[{data:cl},{data:tk}]=await Promise.all([sb.from('clients').select('id'),sb.from('tasks').select('id,status,task_date,stores(name),clients(name),field_users(name)').order('created_at',{ascending:false})]);
+  document.getElementById('stat-clients').textContent=cl?.length||0;
+  document.getElementById('stat-tasks').textContent=tk?.length||0;
+  document.getElementById('stat-inprogress').textContent=tk?.filter(t=>t.status==='in_progress').length||0;
+  document.getElementById('stat-complete').textContent=tk?.filter(t=>t.status==='complete').length||0;
+  const tb=document.getElementById('recent-tasks');
+  if(!tk?.length){tb.innerHTML='<tr><td colspan="5" class="empty-state">No tasks yet</td></tr>';return;}
+  tb.innerHTML=tk.slice(0,10).map(t=>`<tr><td>${t.stores?.name||'—'}</td><td>${t.clients?.name||'—'}</td><td>${t.field_users?.name||'—'}</td><td>${badge(t.status)}</td><td>${t.task_date||'—'}</td></tr>`).join('');
+}
+
+async function loadClients(){
+  const{data}=await sb.from('clients').select('*').order('name');
+  const tb=document.getElementById('clientsBody');
+  if(!data?.length){tb.innerHTML='<tr><td colspan="5" class="empty-state">No clients yet.</td></tr>';return;}
+  tb.innerHTML=data.map(c=>`<tr><td><strong>${c.name}</strong></td><td>${c.username}</td><td>${c.email||'—'}</td><td>${c.is_active?'<span class="badge badge-green">Active</span>':'<span class="badge badge-gray">Inactive</span>'}</td><td><div class="actions"><button class="btn btn-danger btn-sm" onclick="del('clients',${c.id},loadClients)">Delete</button></div></td></tr>`).join('');
+}
+async function saveClient(){
+  const n=document.getElementById('clientName').value.trim();
+  const u=document.getElementById('clientUsername').value.trim();
+  const p=document.getElementById('clientPassword').value;
+  const e=document.getElementById('clientEmail').value.trim();
+  if(!n||!u||!p)return al('clientAlert','Name, username and password required.','error');
+  const r=await fetch(`${RAIL}/api/fieldpro/clients`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:n,username:u,password:p,email:e}),credentials:'include'});
+  const d=await r.json();
+  if(!r.ok)return al('clientAlert',d.error||'Failed.','error');
+  closeModal('clientModal');cls(['clientName','clientUsername','clientPassword','clientEmail']);loadClients();
+}
+
+async function loadProjects(){
+  const{data}=await sb.from('projects').select('*,clients(name)').order('name');
+  const tb=document.getElementById('projectsBody');
+  if(!data?.length){tb.innerHTML='<tr><td colspan="4" class="empty-state">No projects yet.</td></tr>';return;}
+  tb.innerHTML=data.map(p=>`<tr><td><strong>${p.name}</strong></td><td>${p.clients?.name||'—'}</td><td><span class="badge badge-green">${p.status}</span></td><td><button class="btn btn-danger btn-sm" onclick="del('projects',${p.id},loadProjects)">Delete</button></td></tr>`).join('');
+}
+async function saveProject(){
+  const n=document.getElementById('projectName').value.trim();
+  const c=document.getElementById('projectClient').value;
+  const d=document.getElementById('projectDesc').value.trim();
+  if(!n||!c)return al('projectAlert','Name and client required.','error');
+  const{error}=await sb.from('projects').insert([{name:n,client_id:c,description:d}]);
+  if(error)return al('projectAlert',error.message,'error');
+  closeModal('projectModal');cls(['projectName','projectDesc']);loadProjects();
+}
+
+async function loadOrders(){
+  const{data}=await sb.from('orders').select('*,projects(name),clients(name)').order('created_at',{ascending:false});
+  const tb=document.getElementById('ordersBody');
+  if(!data?.length){tb.innerHTML='<tr><td colspan="5" class="empty-state">No orders yet.</td></tr>';return;}
+  tb.innerHTML=data.map(o=>`<tr><td>${o.order_number}</td><td>${o.name}</td><td>${o.projects?.name||'—'}</td><td>${o.clients?.name||'—'}</td><td><button class="btn btn-danger btn-sm" onclick="del('orders',${o.id},loadOrders)">Delete</button></td></tr>`).join('');
+}
+async function saveOrder(){
+  const on=document.getElementById('orderNumber').value.trim();
+  const nm=document.getElementById('orderName').value.trim();
+  const pr=document.getElementById('orderProject').value;
+  const cl=document.getElementById('orderClient').value;
+  if(!on||!nm||!pr||!cl)return al('orderAlert','All fields required.','error');
+  const{error}=await sb.from('orders').insert([{order_number:on,name:nm,project_id:pr,client_id:cl}]);
+  if(error)return al('orderAlert',error.message,'error');
+  closeModal('orderModal');cls(['orderNumber','orderName']);loadOrders();
+}
+
+async function loadStores(){
+  const{data}=await sb.from('stores').select('*,cities(name)').order('name');
+  const tb=document.getElementById('storesBody');
+  if(!data?.length){tb.innerHTML='<tr><td colspan="4" class="empty-state">No stores yet.</td></tr>';return;}
+  tb.innerHTML=data.map(s=>`<tr><td><strong>${s.name}</strong></td><td>${s.cities?.name||'—'}</td><td>${s.address||'—'}</td><td><button class="btn btn-danger btn-sm" onclick="del('stores',${s.id},loadStores)">Delete</button></td></tr>`).join('');
+}
+async function saveStore(){
+  const n=document.getElementById('storeName').value.trim();
+  const c=document.getElementById('storeCity').value;
+  const a=document.getElementById('storeAddress').value.trim();
+  if(!n||!c)return al('storeAlert','Name and city required.','error');
+  const{error}=await sb.from('stores').insert([{name:n,city_id:c,address:a}]);
+  if(error)return al('storeAlert',error.message,'error');
+  closeModal('storeModal');cls(['storeName','storeAddress']);loadStores();
+}
+
+async function loadFieldUsers(){
+  const{data}=await sb.from('field_users').select('id,name,username,phone,is_active').order('name');
+  const tb=document.getElementById('fieldUsersBody');
+  if(!data?.length){tb.innerHTML='<tr><td colspan="5" class="empty-state">No field team members yet.</td></tr>';return;}
+  tb.innerHTML=data.map(u=>`<tr><td><strong>${u.name}</strong></td><td>${u.username}</td><td>${u.phone||'—'}</td><td>${u.is_active?'<span class="badge badge-green">Active</span>':'<span class="badge badge-gray">Inactive</span>'}</td><td><button class="btn btn-danger btn-sm" onclick="del('field_users',${u.id},loadFieldUsers)">Delete</button></td></tr>`).join('');
+}
+async function saveFieldUser(){
+  const n=document.getElementById('fieldUserName').value.trim();
+  const u=document.getElementById('fieldUserUsername').value.trim();
+  const p=document.getElementById('fieldUserPassword').value;
+  const ph=document.getElementById('fieldUserPhone').value.trim();
+  if(!n||!u||!p)return al('fieldUserAlert','Name, username and password required.','error');
+  const r=await fetch(`${RAIL}/api/fieldpro/field-users`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:n,username:u,password:p,phone:ph}),credentials:'include'});
+  const d=await r.json();
+  if(!r.ok)return al('fieldUserAlert',d.error||'Failed.','error');
+  closeModal('fieldUserModal');cls(['fieldUserName','fieldUserUsername','fieldUserPassword','fieldUserPhone']);loadFieldUsers();
+}
+
+async function loadTasks(){
+  const{data}=await sb.from('tasks').select('*,stores(name),projects(name),clients(name),orders(order_number),field_users(name)').order('created_at',{ascending:false});
+  const tb=document.getElementById('tasksBody');
+  if(!data?.length){tb.innerHTML='<tr><td colspan="8" class="empty-state">No tasks yet.</td></tr>';return;}
+  tb.innerHTML=data.map(t=>`<tr><td><strong>${t.stores?.name||'—'}</strong></td><td>${t.projects?.name||'—'}</td><td>${t.clients?.name||'—'}</td><td>${t.field_users?.name||'—'}</td><td>${t.task_type||'—'}</td><td>${t.task_date||'—'}</td><td>${badge(t.status)}</td><td><button class="btn btn-danger btn-sm" onclick="del('tasks',${t.id},loadTasks)">Delete</button></td></tr>`).join('');
+}
+async function saveTask(){
+  const st=document.getElementById('taskStore').value;
+  const or=document.getElementById('taskOrder').value;
+  const fu=document.getElementById('taskFieldUser').value;
+  const tt=document.getElementById('taskType').value.trim();
+  const td=document.getElementById('taskDate').value;
+  const tn=document.getElementById('taskNumber').value.trim();
+  if(!st||!or||!fu)return al('taskAlert','Store, order and field user required.','error');
+  const{data:ord}=await sb.from('orders').select('project_id,client_id').eq('id',or).maybeSingle();
+  const{error}=await sb.from('tasks').insert([{store_id:parseInt(st),order_id:parseInt(or),field_user_id:parseInt(fu),task_type:tt,task_date:td||null,task_number:tn,project_id:ord?.project_id,client_id:ord?.client_id,status:'assign'}]);
+  if(error)return al('taskAlert',error.message,'error');
+  closeModal('taskModal');cls(['taskType','taskDate','taskNumber']);loadTasks();
+}
+
+async function loadSurveys(){
+  const{data}=await sb.from('survey_templates').select('*,projects(name),clients(name),survey_fields(id)').order('created_at',{ascending:false});
+  const tb=document.getElementById('surveysBody');
+  if(!data?.length){tb.innerHTML='<tr><td colspan="5" class="empty-state">No survey templates yet.</td></tr>';return;}
+  tb.innerHTML=data.map(s=>`<tr><td><strong>${s.name}</strong></td><td>${s.projects?.name||'—'}</td><td>${s.clients?.name||'—'}</td><td>${s.survey_fields?.length||0} fields</td><td><button class="btn btn-danger btn-sm" onclick="del('survey_templates',${s.id},loadSurveys)">Delete</button></td></tr>`).join('');
+}
+function addField(){
+  sfn++;const id=sfn;
+  const div=document.createElement('div');
+  div.id=`sf-${id}`;
+  div.style.cssText='border:1px solid #DDE2E8;border-radius:8px;padding:12px;margin-bottom:10px;background:#F8F9FA';
+  div.innerHTML=`<div style="display:flex;gap:8px;margin-bottom:8px"><input type="text" placeholder="Field label (e.g. Width MM)" style="flex:1;padding:8px 10px;border:1px solid #DDE2E8;border-radius:6px;font-size:13px" id="sf-lbl-${id}"><select style="padding:8px;border:1px solid #DDE2E8;border-radius:6px;font-size:13px" id="sf-typ-${id}" onchange="tgOpts(${id})"><option value="text">Text</option><option value="number">Number</option><option value="dropdown">Dropdown</option><option value="photo">Photo</option></select><button onclick="document.getElementById('sf-${id}').remove()" style="background:#FADBD8;color:#922B21;border:none;border-radius:6px;padding:8px 10px;cursor:pointer;font-weight:700">✕</button></div><div id="sf-opts-${id}" style="display:none"><input type="text" placeholder="Options: N/A, Yes, No" style="width:100%;padding:8px 10px;border:1px solid #DDE2E8;border-radius:6px;font-size:13px" id="sf-optv-${id}"></div>`;
+  document.getElementById('sfContainer').appendChild(div);
+}
+function tgOpts(id){document.getElementById(`sf-opts-${id}`).style.display=document.getElementById(`sf-typ-${id}`).value==='dropdown'?'block':'none';}
+async function saveSurvey(){
+  const n=document.getElementById('surveyName').value.trim();
+  const pr=document.getElementById('surveyProject').value;
+  const cl=document.getElementById('surveyClient').value;
+  if(!n||!pr||!cl)return al('surveyAlert','Name, project and client required.','error');
+  const{data:tmpl,error}=await sb.from('survey_templates').insert([{name:n,project_id:parseInt(pr),client_id:parseInt(cl)}]).select().single();
+  if(error)return al('surveyAlert',error.message,'error');
+  const fields=[];
+  for(let i=1;i<=sfn;i++){
+    const lbl=document.getElementById(`sf-lbl-${i}`);
+    const typ=document.getElementById(`sf-typ-${i}`);
+    if(!lbl||!typ)continue;
+    const label=lbl.value.trim();
+    if(!label)continue;
+    const optEl=document.getElementById(`sf-optv-${i}`);
+    const opts=optEl?.value?optEl.value.split(',').map(o=>o.trim()).filter(Boolean):[];
+    fields.push({template_id:tmpl.id,field_label:label,field_type:typ.value,field_options:opts,sort_order:fields.length});
+  }
+  if(fields.length)await sb.from('survey_fields').insert(fields);
+  closeModal('surveyModal');sfn=0;document.getElementById('sfContainer').innerHTML='';cls(['surveyName']);loadSurveys();
+}
+
+async function loadResults(){
+  const{data}=await sb.from('survey_responses').select('*,stores(name),survey_templates(name),field_users(name)').order('created_at',{ascending:false});
+  const tb=document.getElementById('resultsBody');
+  if(!data?.length){tb.innerHTML='<tr><td colspan="6" class="empty-state">No survey results yet.</td></tr>';return;}
+  tb.innerHTML=data.map(r=>`<tr><td>${r.stores?.name||'—'}</td><td>${r.brand||'—'}</td><td>${r.survey_templates?.name||'—'}</td><td>${r.field_users?.name||'—'}</td><td>${r.status==='complete'?'<span class="badge badge-green">Complete</span>':'<span class="badge badge-orange">In Progress</span>'}</td><td>${r.submitted_at?new Date(r.submitted_at).toLocaleDateString():'—'}</td></tr>`).join('');
+}
+
+async function loadRepairs(){
+  const{data}=await sb.from('repair_items').select('*,assets(title)').order('created_at',{ascending:false});
+  const tb=document.getElementById('repairsBody');
+  if(!data?.length){tb.innerHTML='<tr><td colspan="6" class="empty-state">No repair items yet.</td></tr>';return;}
+  tb.innerHTML=data.map(r=>`<tr><td>${r.assets?.title||'—'}</td><td>${r.repair_type||'—'}</td><td>${r.quantity||1}</td><td>${r.status==='complete'?'<span class="badge badge-green">Complete</span>':'<span class="badge badge-orange">Pending</span>'}</td><td>${r.remarks||'—'}</td><td>${new Date(r.created_at).toLocaleDateString()}</td></tr>`).join('');
+}
+
+async function del(table,id,reload){
+  if(!confirm('Delete this record?'))return;
+  const{error}=await sb.from(table).delete().eq('id',id);
+  if(error)return alert('Delete failed: '+error.message);
+  reload();
+}
+function badge(s){const m={assign:'badge-gray',in_progress:'badge-blue',complete:'badge-green'};const l={assign:'Not Started',in_progress:'In Progress',complete:'Complete'};return`<span class="badge ${m[s]||'badge-gray'}">${l[s]||s}</span>`;}
+function al(id,msg,type){const e=document.getElementById(id);if(!e)return;e.className=`alert alert-${type}`;e.textContent=msg;e.style.display='block';setTimeout(()=>e.style.display='none',4000);}
+function openModal(id){document.getElementById(id).classList.add('open');populateSels(id);}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function cls(ids){ids.forEach(id=>{const e=document.getElementById(id);if(e)e.value=''});}
+function filterTable(input,bodyId){const q=input.value.toLowerCase();document.querySelectorAll(`#${bodyId} tr`).forEach(r=>{r.style.display=r.textContent.toLowerCase().includes(q)?'':'none';});}
+
+async function populateSels(mid){
+  if(['projectModal','orderModal','taskModal','surveyModal'].includes(mid)){
+    const{data:cl}=await sb.from('clients').select('id,name').order('name');
+    ['projectClient','orderClient','surveyClient'].forEach(sid=>{
+      const s=document.getElementById(sid);if(!s)return;
+      s.innerHTML='<option value="">Select client...</option>'+(cl||[]).map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+    });
+  }
+  if(['orderModal','taskModal','surveyModal'].includes(mid)){
+    const{data:pr}=await sb.from('projects').select('id,name').order('name');
+    ['orderProject','surveyProject'].forEach(sid=>{
+      const s=document.getElementById(sid);if(!s)return;
+      s.innerHTML='<option value="">Select project...</option>'+(pr||[]).map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+    });
+  }
+  if(mid==='taskModal'){
+    const[{data:st},{data:or},{data:fu}]=await Promise.all([sb.from('stores').select('id,name').order('name'),sb.from('orders').select('id,order_number,name').order('order_number'),sb.from('field_users').select('id,name,username').eq('is_active',true).order('name')]);
+    document.getElementById('taskStore').innerHTML='<option value="">Select store...</option>'+(st||[]).map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+    document.getElementById('taskOrder').innerHTML='<option value="">Select order...</option>'+(or||[]).map(o=>`<option value="${o.id}">${o.order_number} — ${o.name}</option>`).join('');
+    document.getElementById('taskFieldUser').innerHTML='<option value="">Select field user...</option>'+(fu||[]).map(u=>`<option value="${u.id}">${u.name} (${u.username})</option>`).join('');
+  }
+  if(mid==='storeModal'){
+    const{data:ci}=await sb.from('cities').select('id,name').order('name');
+    document.getElementById('storeCity').innerHTML='<option value="">Select city...</option>'+(ci||[]).map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  }
+  if(mid==='surveyModal'){sfn=0;document.getElementById('sfContainer').innerHTML='';}
+}
+
+document.getElementById('lp').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+if(admin)showApp();
+</script>
+</body>
+</html>

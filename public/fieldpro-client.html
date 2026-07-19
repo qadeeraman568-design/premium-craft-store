@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FieldPro — Client Portal</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F0F2F5;color:#1a1a2e}
+.login-page{min-height:100vh;background:linear-gradient(135deg,#117A65 0%,#1B4F72 100%);display:flex;align-items:center;justify-content:center;padding:20px}
+.login-box{background:#fff;border-radius:14px;padding:40px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.login-logo{text-align:center;margin-bottom:28px}
+.logo-circle{width:68px;height:68px;border-radius:50%;background:linear-gradient(135deg,#117A65,#1B4F72);display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
+.logo-text{color:#fff;font-size:24px;font-weight:800}
+.login-title{font-size:22px;font-weight:700;color:#1B4F72}
+.login-sub{color:#888;font-size:13px;margin-top:4px}
+.login-err{background:#FADBD8;color:#922B21;padding:10px 14px;border-radius:6px;font-size:13px;margin-bottom:16px;display:none}
+.fg{margin-bottom:16px}
+.fg label{display:block;font-size:13px;font-weight:600;color:#555;margin-bottom:6px}
+.fg input{width:100%;padding:12px 14px;border:1px solid #DDE2E8;border-radius:8px;font-size:14px;background:#F8F9FA;font-family:inherit;transition:border-color .2s}
+.fg input:focus{outline:none;border-color:#117A65}
+.btn-login{background:linear-gradient(135deg,#117A65,#1B4F72);color:#fff;width:100%;padding:13px;border-radius:8px;border:none;font-size:15px;font-weight:700;cursor:pointer}
+.btn-login:hover{opacity:.92}
+.login-footer{text-align:center;color:#aaa;font-size:12px;margin-top:20px}
+.app{display:none;min-height:100vh}
+.topbar{background:#1B4F72;padding:0 28px;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.tb-brand{display:flex;align-items:center;gap:10px}
+.tb-logo{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:14px}
+.tb-name{color:#fff;font-size:16px;font-weight:700}
+.tb-sub{color:rgba(255,255,255,.6);font-size:12px}
+.tb-right{display:flex;align-items:center;gap:16px}
+.tb-client{color:rgba(255,255,255,.85);font-size:13px;font-weight:600}
+.tb-logout{color:rgba(255,255,255,.6);font-size:13px;cursor:pointer;padding:6px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.2)}
+.tb-logout:hover{background:rgba(255,255,255,.1);color:#fff}
+.nav-tabs{background:#fff;border-bottom:1px solid #E8EDF2;padding:0 28px;display:flex;gap:4px;overflow-x:auto}
+.nav-tab{padding:14px 18px;font-size:13px;font-weight:600;color:#888;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;transition:all .2s}
+.nav-tab:hover{color:#1B4F72}
+.nav-tab.active{color:#117A65;border-bottom-color:#117A65}
+.main{padding:28px;max-width:1200px;margin:0 auto}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat-card{background:#fff;border-radius:10px;padding:20px;border-top:4px solid;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.stat-card.green{border-color:#117A65}
+.stat-card.blue{border-color:#1B4F72}
+.stat-card.orange{border-color:#E67E22}
+.stat-card.teal{border-color:#148F77}
+.sv{font-size:30px;font-weight:800;color:#1a1a2e}
+.sl{font-size:12px;color:#888;font-weight:600;margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
+.card{background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.06);overflow:hidden;margin-bottom:20px}
+.card-header{padding:16px 20px;border-bottom:1px solid #F0F0F0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.card-title{font-size:15px;font-weight:700;color:#1B4F72}
+table{width:100%;border-collapse:collapse}
+th{background:#F8F9FA;padding:11px 16px;text-align:left;font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px}
+td{padding:12px 16px;border-bottom:1px solid #F5F5F5;font-size:13px;color:#333;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#F8FBFF}
+.badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700}
+.badge-green{background:#D5F5E3;color:#117A65}
+.badge-blue{background:#D6EAF8;color:#1B4F72}
+.badge-gray{background:#E8EDF2;color:#6C757D}
+.badge-orange{background:#FDEBD0;color:#E67E22}
+.empty-state{text-align:center;padding:40px;color:#999;font-size:14px}
+.btn{padding:7px 14px;border-radius:6px;font-weight:600;font-size:12px;cursor:pointer;border:none}
+.btn-primary{background:#117A65;color:#fff}
+.search-input{padding:8px 12px;border:1px solid #DDE2E8;border-radius:7px;font-size:13px;background:#F8F9FA}
+.page{display:none}
+.page.active{display:block}
+.ph{margin-bottom:20px}
+.pt{font-size:20px;font-weight:700;color:#1B4F72;margin-bottom:4px}
+.ps{font-size:13px;color:#888}
+.progress-bar{background:#E8EDF2;border-radius:10px;height:8px;overflow:hidden;margin-top:6px}
+.progress-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,#117A65,#1B4F72);transition:width .4s}
+.sum-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+.sum-card{background:#F8F9FA;border-radius:8px;padding:16px;border:1px solid #E8EDF2}
+.sum-title{font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.sum-val{font-size:22px;font-weight:800;color:#1B4F72}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:12px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto}
+.modal-header{padding:18px 24px;border-bottom:1px solid #F0F0F0;display:flex;align-items:center;justify-content:space-between;background:#1B4F72;border-radius:12px 12px 0 0}
+.modal-title{font-size:16px;font-weight:700;color:#fff}
+.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:rgba(255,255,255,.7)}
+.modal-body{padding:24px}
+.ans-row{display:flex;padding:10px 0;border-bottom:1px solid #F5F5F5}
+.ans-label{width:140px;font-size:12px;font-weight:700;color:#888;text-transform:uppercase;flex-shrink:0}
+.ans-value{flex:1;font-size:14px;color:#333;font-weight:500}
+.det-sec{background:#F8F9FA;border-radius:8px;padding:14px;margin-bottom:16px}
+.det-sec-title{font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+@media(max-width:768px){.stats-grid{grid-template-columns:repeat(2,1fr)}.sum-grid{grid-template-columns:repeat(2,1fr)}.main{padding:16px}.topbar{padding:0 16px}}
+</style>
+</head>
+<body>
+
+<div class="login-page" id="loginPage">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="logo-circle"><span class="logo-text">FP</span></div>
+      <div class="login-title">Client Portal</div>
+      <div class="login-sub">FieldPro Execution Reports</div>
+    </div>
+    <div class="login-err" id="loginErr"></div>
+    <div class="fg"><label>Username</label><input type="text" id="lu" placeholder="Your client username"></div>
+    <div class="fg"><label>Password</label><input type="password" id="lp" placeholder="Your password"></div>
+    <button class="btn-login" onclick="doLogin()">Sign In to Portal</button>
+    <div class="login-footer">Contact your field execution partner for access</div>
+  </div>
+</div>
+
+<div class="app" id="appLayout">
+  <div class="topbar">
+    <div class="tb-brand">
+      <div class="tb-logo">FP</div>
+      <div><div class="tb-name">FieldPro Portal</div><div class="tb-sub">Execution & Survey Reports</div></div>
+    </div>
+    <div class="tb-right">
+      <span class="tb-client" id="tbClient">—</span>
+      <span class="tb-logout" onclick="doLogout()">Log Out</span>
+    </div>
+  </div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" onclick="showTab(this,'overview')">📊 Overview</div>
+    <div class="nav-tab" onclick="showTab(this,'tasks')">✅ Tasks</div>
+    <div class="nav-tab" onclick="showTab(this,'surveys')">📝 Survey Results</div>
+    <div class="nav-tab" onclick="showTab(this,'repairs')">🔧 Repair Items</div>
+    <div class="nav-tab" onclick="showTab(this,'stores')">🏪 Stores</div>
+  </div>
+  <div class="main">
+
+    <div class="page active" id="tab-overview">
+      <div class="ph"><div class="pt">Execution Overview</div><div class="ps">Real-time summary of all field operations for your account</div></div>
+      <div class="stats-grid">
+        <div class="stat-card green"><div class="sv" id="ov-total">—</div><div class="sl">Total Tasks</div></div>
+        <div class="stat-card blue"><div class="sv" id="ov-complete">—</div><div class="sl">Completed</div></div>
+        <div class="stat-card orange"><div class="sv" id="ov-inprog">—</div><div class="sl">In Progress</div></div>
+        <div class="stat-card teal"><div class="sv" id="ov-surveys">—</div><div class="sl">Surveys Done</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Overall Completion</span></div>
+        <div style="padding:20px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:13px;color:#555;font-weight:600">Task Completion Rate</span><span style="font-size:13px;font-weight:700;color:#117A65" id="ov-pct">0%</span></div>
+          <div class="progress-bar"><div class="progress-fill" id="ov-bar" style="width:0%"></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Projects Summary</span></div>
+        <table><thead><tr><th>Project</th><th>Total Tasks</th><th>Complete</th><th>In Progress</th><th>Not Started</th></tr></thead>
+        <tbody id="ov-projects"><tr><td colspan="5" class="empty-state">Loading...</td></tr></tbody></table>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Recent Activity</span></div>
+        <table><thead><tr><th>Store</th><th>Field User</th><th>Activity</th><th>Status</th><th>Date</th></tr></thead>
+        <tbody id="ov-activity"><tr><td colspan="5" class="empty-state">Loading...</td></tr></tbody></table>
+      </div>
+    </div>
+
+    <div class="page" id="tab-tasks">
+      <div class="ph"><div class="pt">Tasks</div><div class="ps">All store execution tasks for your account</div></div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">All Tasks</span>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <input class="search-input" type="text" placeholder="🔍 Search stores..." oninput="filterTable(this,'tasksBody')">
+            <select class="search-input" onchange="filterStatus(this)"><option value="">All Status</option><option value="assign">Not Started</option><option value="in_progress">In Progress</option><option value="complete">Complete</option></select>
+          </div>
+        </div>
+        <table><thead><tr><th>Store</th><th>City</th><th>Project</th><th>Order</th><th>Field User</th><th>Task Type</th><th>Date</th><th>Status</th></tr></thead>
+        <tbody id="tasksBody"><tr><td colspan="8" class="empty-state">Loading...</td></tr></tbody></table>
+      </div>
+    </div>
+
+    <div class="page" id="tab-surveys">
+      <div class="ph"><div class="pt">Survey Results</div><div class="ps">Completed survey responses from field team</div></div>
+      <div class="sum-grid">
+        <div class="sum-card"><div class="sum-title">Total Surveys</div><div class="sum-val" id="sv-total">—</div></div>
+        <div class="sum-card"><div class="sum-title">Completed</div><div class="sum-val" id="sv-complete">—</div></div>
+        <div class="sum-card"><div class="sum-title">In Progress</div><div class="sum-val" id="sv-inprog">—</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Survey Responses</span>
+          <input class="search-input" type="text" placeholder="🔍 Search..." oninput="filterTable(this,'surveysBody')">
+        </div>
+        <table><thead><tr><th>Store</th><th>Brand</th><th>Template</th><th>Field User</th><th>Status</th><th>Date</th><th>Details</th></tr></thead>
+        <tbody id="surveysBody"><tr><td colspan="7" class="empty-state">Loading...</td></tr></tbody></table>
+      </div>
+    </div>
+
+    <div class="page" id="tab-repairs">
+      <div class="ph"><div class="pt">Repair & Inspection Items</div><div class="ps">All logged repair and maintenance items</div></div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Repair Items</span>
+          <input class="search-input" type="text" placeholder="🔍 Search..." oninput="filterTable(this,'repairsBody')">
+        </div>
+        <table><thead><tr><th>Asset</th><th>Repair Type</th><th>Qty</th><th>Dimensions</th><th>Remarks</th><th>Status</th><th>Date</th></tr></thead>
+        <tbody id="repairsBody"><tr><td colspan="7" class="empty-state">Loading...</td></tr></tbody></table>
+      </div>
+    </div>
+
+    <div class="page" id="tab-stores">
+      <div class="ph"><div class="pt">Stores</div><div class="ps">All stores under your projects</div></div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Store List</span>
+          <input class="search-input" type="text" placeholder="🔍 Search stores..." oninput="filterTable(this,'storesBody')">
+        </div>
+        <table><thead><tr><th>Store Name</th><th>City</th><th>Tasks</th><th>Completed</th><th>Status</th></tr></thead>
+        <tbody id="storesBody"><tr><td colspan="5" class="empty-state">Loading...</td></tr></tbody></table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="modal-overlay" id="surveyModal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title" id="modalTitle">Survey Details</span><button class="modal-close" onclick="document.getElementById('surveyModal').classList.remove('open')">×</button></div>
+    <div class="modal-body" id="modalBody">Loading...</div>
+  </div>
+</div>
+
+<script>
+const SURL='https://mqyztslkowysliukgheh.supabase.co';
+const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1xeXp0c2xrb3d5c2xpdWtnaGVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIzNzQ1MjAsImV4cCI6MjA5Nzk1MDUyMH0.K8IAEgsDBUXs6-aeSYuTIfoQLrjPwHrkF0Yplx9dzZM';
+const RAIL='https://premium-craft-store-production.up.railway.app';
+const sb=supabase.createClient(SURL,SKEY);
+let client=JSON.parse(sessionStorage.getItem('fp_client')||'null');
+
+async function doLogin(){
+  const u=document.getElementById('lu').value.trim();
+  const p=document.getElementById('lp').value;
+  if(!u||!p)return err('Please enter username and password.');
+  try{
+    const r=await fetch(`${RAIL}/api/client/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p}),credentials:'include'});
+    const d=await r.json();
+    if(!r.ok)return err(d.error||'Login failed.');
+    client=d.client;
+    sessionStorage.setItem('fp_client',JSON.stringify(client));
+    showApp();
+  }catch(e){err('Cannot connect to server.');}
+}
+function err(m){const e=document.getElementById('loginErr');e.textContent=m;e.style.display='block';}
+function showApp(){
+  document.getElementById('loginPage').style.display='none';
+  document.getElementById('appLayout').style.display='block';
+  document.getElementById('tbClient').textContent=client?.name||'Client';
+  loadOverview();
+}
+function doLogout(){sessionStorage.clear();location.reload();}
+
+function showTab(el,tab){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  el.classList.add('active');
+  ({overview:loadOverview,tasks:loadTasks,surveys:loadSurveys,repairs:loadRepairs,stores:loadStores})[tab]?.();
+}
+
+async function getTasks(){
+  const{data}=await sb.from('tasks').select('*,stores(name,cities(name)),projects(name),orders(order_number),field_users(name)').eq('client_id',client.id).order('created_at',{ascending:false});
+  return data||[];
+}
+
+async function loadOverview(){
+  const tasks=await getTasks();
+  const{data:sv}=await sb.from('survey_responses').select('id,status,store_id').in('task_id',tasks.map(t=>t.id).length?tasks.map(t=>t.id):[0]);
+  const total=tasks.length,comp=tasks.filter(t=>t.status==='complete').length,inp=tasks.filter(t=>t.status==='in_progress').length;
+  const svComp=(sv||[]).filter(s=>s.status==='complete').length;
+  const pct=total?Math.round((comp/total)*100):0;
+  document.getElementById('ov-total').textContent=total;
+  document.getElementById('ov-complete').textContent=comp;
+  document.getElementById('ov-inprog').textContent=inp;
+  document.getElementById('ov-surveys').textContent=svComp;
+  document.getElementById('ov-pct').textContent=pct+'%';
+  document.getElementById('ov-bar').style.width=pct+'%';
+  const projs={};
+  tasks.forEach(t=>{const p=t.projects?.name||'Unknown';if(!projs[p])projs[p]={total:0,comp:0,inp:0,ns:0};projs[p].total++;if(t.status==='complete')projs[p].comp++;else if(t.status==='in_progress')projs[p].inp++;else projs[p].ns++;});
+  document.getElementById('ov-projects').innerHTML=Object.entries(projs).map(([n,p])=>`<tr><td><strong>${n}</strong></td><td>${p.total}</td><td><span class="badge badge-green">${p.comp}</span></td><td><span class="badge badge-blue">${p.inp}</span></td><td><span class="badge badge-gray">${p.ns}</span></td></tr>`).join('')||'<tr><td colspan="5" class="empty-state">No projects yet</td></tr>';
+  document.getElementById('ov-activity').innerHTML=tasks.slice(0,8).map(t=>`<tr><td><strong>${t.stores?.name||'—'}</strong></td><td>${t.field_users?.name||'—'}</td><td>${t.task_type||'Store Visit'}</td><td>${badge(t.status)}</td><td>${t.task_date||'—'}</td></tr>`).join('')||'<tr><td colspan="5" class="empty-state">No activity yet</td></tr>';
+}
+
+async function loadTasks(){
+  const tasks=await getTasks();
+  const tb=document.getElementById('tasksBody');
+  if(!tasks.length){tb.innerHTML='<tr><td colspan="8" class="empty-state">No tasks found.</td></tr>';return;}
+  tb.innerHTML=tasks.map(t=>`<tr data-status="${t.status}"><td><strong>${t.stores?.name||'—'}</strong></td><td>${t.stores?.cities?.name||'—'}</td><td>${t.projects?.name||'—'}</td><td>${t.orders?.order_number||'—'}</td><td>${t.field_users?.name||'—'}</td><td>${t.task_type||'—'}</td><td>${t.task_date||'—'}</td><td>${badge(t.status)}</td></tr>`).join('');
+}
+function filterStatus(sel){const v=sel.value;document.querySelectorAll('#tasksBody tr').forEach(r=>{r.style.display=!v||r.dataset.status===v?'':'none';});}
+
+async function loadSurveys(){
+  const tasks=await getTasks();
+  const ids=tasks.map(t=>t.id);
+  if(!ids.length){document.getElementById('sv-total').textContent=0;document.getElementById('sv-complete').textContent=0;document.getElementById('sv-inprog').textContent=0;document.getElementById('surveysBody').innerHTML='<tr><td colspan="7" class="empty-state">No surveys yet.</td></tr>';return;}
+  const{data}=await sb.from('survey_responses').select('*,stores(name),survey_templates(name),field_users(name)').in('task_id',ids).order('created_at',{ascending:false});
+  const sv=data||[];
+  document.getElementById('sv-total').textContent=sv.length;
+  document.getElementById('sv-complete').textContent=sv.filter(s=>s.status==='complete').length;
+  document.getElementById('sv-inprog').textContent=sv.filter(s=>s.status!=='complete').length;
+  document.getElementById('surveysBody').innerHTML=sv.length?sv.map(s=>`<tr><td><strong>${s.stores?.name||'—'}</strong></td><td>${s.brand||'—'}</td><td>${s.survey_templates?.name||'—'}</td><td>${s.field_users?.name||'—'}</td><td>${s.status==='complete'?'<span class="badge badge-green">Complete</span>':'<span class="badge badge-orange">In Progress</span>'}</td><td>${s.submitted_at?new Date(s.submitted_at).toLocaleDateString():'—'}</td><td><button class="btn btn-primary" onclick="viewSurvey(${s.id},'${(s.stores?.name||'').replace(/'/g,"\\'")}')">View</button></td></tr>`).join(''):'<tr><td colspan="7" class="empty-state">No survey results yet.</td></tr>';
+}
+async function viewSurvey(id,store){
+  document.getElementById('modalTitle').textContent='Survey — '+store;
+  document.getElementById('modalBody').innerHTML='<div style="text-align:center;padding:30px;color:#888">Loading...</div>';
+  document.getElementById('surveyModal').classList.add('open');
+  const{data}=await sb.from('survey_responses').select('*,stores(name),survey_templates(name),field_users(name),survey_answers(*)').eq('id',id).maybeSingle();
+  if(!data){document.getElementById('modalBody').innerHTML='<div style="color:#922B21;padding:20px">Could not load details.</div>';return;}
+  document.getElementById('modalBody').innerHTML=`
+    <div class="det-sec"><div class="det-sec-title">Survey Info</div>
+      <div class="ans-row"><span class="ans-label">Store</span><span class="ans-value">${data.stores?.name||'—'}</span></div>
+      <div class="ans-row"><span class="ans-label">Brand</span><span class="ans-value">${data.brand||'—'}</span></div>
+      <div class="ans-row"><span class="ans-label">Template</span><span class="ans-value">${data.survey_templates?.name||'—'}</span></div>
+      <div class="ans-row"><span class="ans-label">Field User</span><span class="ans-value">${data.field_users?.name||'—'}</span></div>
+      <div class="ans-row"><span class="ans-label">Status</span><span class="ans-value">${data.status==='complete'?'✅ Complete':'🔄 In Progress'}</span></div>
+      <div class="ans-row" style="border:none"><span class="ans-label">Date</span><span class="ans-value">${data.submitted_at?new Date(data.submitted_at).toLocaleString():'—'}</span></div>
+    </div>
+    <div class="det-sec"><div class="det-sec-title">Survey Answers</div>
+      ${data.survey_answers?.length?data.survey_answers.map(a=>`<div class="ans-row"><span class="ans-label">${a.field_label||'—'}</span><span class="ans-value">${a.answer_text||(a.answer_image_path?'📷 Photo captured':'—')}</span></div>`).join(''):'<div style="color:#999;font-size:13px">No answers recorded.</div>'}
+    </div>`;
+}
+
+async function loadRepairs(){
+  const tasks=await getTasks();
+  const ids=tasks.map(t=>t.id);
+  if(!ids.length){document.getElementById('repairsBody').innerHTML='<tr><td colspan="7" class="empty-state">No repair items yet.</td></tr>';return;}
+  const{data}=await sb.from('repair_items').select('*,assets(title)').in('task_id',ids).order('created_at',{ascending:false});
+  const tb=document.getElementById('repairsBody');
+  if(!data?.length){tb.innerHTML='<tr><td colspan="7" class="empty-state">No repair items yet.</td></tr>';return;}
+  tb.innerHTML=data.map(r=>`<tr><td>${r.assets?.title||'—'}</td><td>${r.repair_type||'—'}</td><td>${r.quantity||1}</td><td>${r.width_mm?r.width_mm+'×'+r.height_mm+'mm':'—'}</td><td>${r.remarks||'—'}</td><td>${r.status==='complete'?'<span class="badge badge-green">Complete</span>':'<span class="badge badge-orange">Pending</span>'}</td><td>${new Date(r.created_at).toLocaleDateString()}</td></tr>`).join('');
+}
+
+async function loadStores(){
+  const tasks=await getTasks();
+  if(!tasks.length){document.getElementById('storesBody').innerHTML='<tr><td colspan="5" class="empty-state">No stores found.</td></tr>';return;}
+  const storeIds=[...new Set(tasks.map(t=>t.store_id))];
+  const{data:stores}=await sb.from('stores').select('*,cities(name)').in('id',storeIds);
+  const tb=document.getElementById('storesBody');
+  tb.innerHTML=(stores||[]).map(s=>{
+    const st=tasks.filter(t=>t.store_id===s.id);
+    const comp=st.filter(t=>t.status==='complete').length;
+    return`<tr><td><strong>${s.name}</strong></td><td>${s.cities?.name||'—'}</td><td>${st.length}</td><td>${comp}</td><td>${comp===st.length&&st.length>0?'<span class="badge badge-green">All Done</span>':comp>0?'<span class="badge badge-blue">In Progress</span>':'<span class="badge badge-gray">Not Started</span>'}</td></tr>`;
+  }).join('')||'<tr><td colspan="5" class="empty-state">No stores found.</td></tr>';
+}
+
+function badge(s){const m={assign:'badge-gray',in_progress:'badge-blue',complete:'badge-green'};const l={assign:'Not Started',in_progress:'In Progress',complete:'Complete'};return`<span class="badge ${m[s]||'badge-gray'}">${l[s]||s}</span>`;}
+function filterTable(input,bodyId){const q=input.value.toLowerCase();document.querySelectorAll(`#${bodyId} tr`).forEach(r=>{r.style.display=r.textContent.toLowerCase().includes(q)?'':'none';});}
+
+document.getElementById('lp').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+if(client)showApp();
+</script>
+</body>
+</html>

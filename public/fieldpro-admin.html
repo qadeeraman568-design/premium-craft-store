@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FieldPro — Admin Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/dist/bcrypt.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F0F2F5;color:#1a1a2e}
@@ -116,6 +117,7 @@ tr:hover td{background:#F8FBFF}
       <div class="nav-item" onclick="showPage('projects')" id="nav-projects"><span class="nav-icon">📁</span>Projects</div>
       <div class="nav-item" onclick="showPage('orders')" id="nav-orders"><span class="nav-icon">📋</span>Orders</div>
       <div class="nav-item" onclick="showPage('stores')" id="nav-stores"><span class="nav-icon">🏪</span>Stores</div>
+      <div class="nav-item" onclick="showPage('brands')" id="nav-brands"><span class="nav-icon">🏷️</span>Brands</div>
       <div class="nav-sec">Field Operations</div>
       <div class="nav-item" onclick="showPage('fieldusers')" id="nav-fieldusers"><span class="nav-icon">👤</span>Field Team</div>
       <div class="nav-item" onclick="showPage('tasks')" id="nav-tasks"><span class="nav-icon">✅</span>Tasks</div>
@@ -168,6 +170,13 @@ tr:hover td{background:#F8FBFF}
       <div class="card"><div class="search-bar"><input type="text" placeholder="Search stores..." oninput="filterTable(this,'storesBody')"></div>
       <table><thead><tr><th>Store Name</th><th>City</th><th>Address</th><th>Actions</th></tr></thead>
       <tbody id="storesBody"><tr><td colspan="4" class="empty-state">Loading...</td></tr></tbody></table></div>
+    </div>
+
+    <div class="page" id="page-brands">
+      <div class="ph"><div><div class="pt">Brands</div><div class="ps">Manage brands per client</div></div><button class="btn btn-success" onclick="openModal('brandModal')">＋ Add Brand</button></div>
+      <div class="card"><div class="search-bar"><input type="text" placeholder="Search brands..." oninput="filterTable(this,'brandsBody')"></div>
+      <table><thead><tr><th>Brand Name</th><th>Client</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="brandsBody"><tr><td colspan="4" class="empty-state">Loading...</td></tr></tbody></table></div>
     </div>
 
     <div class="page" id="page-fieldusers">
@@ -303,6 +312,18 @@ tr:hover td{background:#F8FBFF}
   </div>
 </div>
 
+<div class="modal-overlay" id="brandModal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Add Brand</span><button class="modal-close" onclick="closeModal('brandModal')">×</button></div>
+    <div class="modal-body">
+      <div id="brandAlert" class="alert"></div>
+      <div class="fg"><label>Brand Name *</label><input type="text" id="brandName" placeholder="e.g. Lifebuoy, Close Up, Knorr"></div>
+      <div class="fg"><label>Client *</label><select id="brandClient"><option value="">Select client...</option></select></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('brandModal')">Cancel</button><button class="btn btn-success" onclick="saveBrand()">Save Brand</button></div>
+  </div>
+</div>
+
 <script>
 const SURL='https://mqyztslkowysliukgheh.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1xeXp0c2xrb3d5c2xpdWtnaGVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIzNzQ1MjAsImV4cCI6MjA5Nzk1MDUyMH0.K8IAEgsDBUXs6-aeSYuTIfoQLrjPwHrkF0Yplx9dzZM';
@@ -338,7 +359,7 @@ function showPage(p){
   document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
   document.getElementById('page-'+p).classList.add('active');
   document.getElementById('nav-'+p).classList.add('active');
-  ({dashboard:loadDashboard,clients:loadClients,projects:loadProjects,orders:loadOrders,stores:loadStores,fieldusers:loadFieldUsers,tasks:loadTasks,surveys:loadSurveys,results:loadResults,repairs:loadRepairs})[p]?.();
+  ({dashboard:loadDashboard,clients:loadClients,projects:loadProjects,orders:loadOrders,stores:loadStores,brands:loadBrands,fieldusers:loadFieldUsers,tasks:loadTasks,surveys:loadSurveys,results:loadResults,repairs:loadRepairs})[p]?.();
 }
 
 async function loadDashboard(){
@@ -364,10 +385,14 @@ async function saveClient(){
   const p=document.getElementById('clientPassword').value;
   const e=document.getElementById('clientEmail').value.trim();
   if(!n||!u||!p)return al('clientAlert','Name, username and password required.','error');
-  const r=await fetch(`${RAIL}/api/fieldpro/clients`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:n,username:u,password:p,email:e}),credentials:'include'});
-  const d=await r.json();
-  if(!r.ok)return al('clientAlert',d.error||'Failed.','error');
-  closeModal('clientModal');cls(['clientName','clientUsername','clientPassword','clientEmail']);loadClients();
+  try{
+    // Hash password directly in browser - no Railway needed
+    const salt=dcodeIO.bcrypt.genSaltSync(10);
+    const hash=dcodeIO.bcrypt.hashSync(p,salt);
+    const{error}=await sb.from('clients').insert([{name:n,username:u.toLowerCase(),password_hash:hash,salt:salt,email:e,is_active:true}]);
+    if(error)return al('clientAlert',error.message||'Could not create client.','error');
+    closeModal('clientModal');cls(['clientName','clientUsername','clientPassword','clientEmail']);loadClients();
+  }catch(err){al('clientAlert',err.message||'Failed.','error');}
 }
 
 async function loadProjects(){
@@ -431,10 +456,14 @@ async function saveFieldUser(){
   const p=document.getElementById('fieldUserPassword').value;
   const ph=document.getElementById('fieldUserPhone').value.trim();
   if(!n||!u||!p)return al('fieldUserAlert','Name, username and password required.','error');
-  const r=await fetch(`${RAIL}/api/fieldpro/field-users`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:n,username:u,password:p,phone:ph}),credentials:'include'});
-  const d=await r.json();
-  if(!r.ok)return al('fieldUserAlert',d.error||'Failed.','error');
-  closeModal('fieldUserModal');cls(['fieldUserName','fieldUserUsername','fieldUserPassword','fieldUserPhone']);loadFieldUsers();
+  try{
+    // Hash password directly in browser - no Railway needed
+    const salt=dcodeIO.bcrypt.genSaltSync(10);
+    const hash=dcodeIO.bcrypt.hashSync(p,salt);
+    const{error}=await sb.from('field_users').insert([{name:n,username:u.toLowerCase(),password_hash:hash,salt:salt,phone:ph,is_active:true}]);
+    if(error)return al('fieldUserAlert',error.message||'Could not create field user.','error');
+    closeModal('fieldUserModal');cls(['fieldUserName','fieldUserUsername','fieldUserPassword','fieldUserPhone']);loadFieldUsers();
+  }catch(err){al('fieldUserAlert',err.message||'Failed.','error');}
 }
 
 async function loadTasks(){
@@ -508,6 +537,20 @@ async function loadRepairs(){
   tb.innerHTML=data.map(r=>`<tr><td>${r.assets?.title||'—'}</td><td>${r.repair_type||'—'}</td><td>${r.quantity||1}</td><td>${r.status==='complete'?'<span class="badge badge-green">Complete</span>':'<span class="badge badge-orange">Pending</span>'}</td><td>${r.remarks||'—'}</td><td>${new Date(r.created_at).toLocaleDateString()}</td></tr>`).join('');
 }
 
+async function loadBrands(){
+  const{data}=await sb.from('brands').select('*,clients(name)').order('name');
+  const tb=document.getElementById('brandsBody');
+  if(!data?.length){tb.innerHTML='<tr><td colspan="4" class="empty-state">No brands yet. Add brands per client.</td></tr>';return;}
+  tb.innerHTML=data.map(b=>`<tr><td><strong>${b.name}</strong></td><td>${b.clients?.name||'—'}</td><td>${b.is_active?'<span class="badge badge-green">Active</span>':'<span class="badge badge-gray">Inactive</span>'}</td><td><button class="btn btn-danger btn-sm" onclick="del('brands',${b.id},loadBrands)">Delete</button></td></tr>`).join('');
+}
+async function saveBrand(){
+  const n=document.getElementById('brandName').value.trim();
+  const c=document.getElementById('brandClient').value;
+  if(!n||!c)return al('brandAlert','Brand name and client are required.','error');
+  const{error}=await sb.from('brands').insert([{name:n,client_id:parseInt(c),is_active:true}]);
+  if(error)return al('brandAlert',error.message||'Could not save brand.','error');
+  closeModal('brandModal');cls(['brandName']);loadBrands();
+}
 async function del(table,id,reload){
   if(!confirm('Delete this record?'))return;
   const{error}=await sb.from(table).delete().eq('id',id);
@@ -541,6 +584,11 @@ async function populateSels(mid){
     document.getElementById('taskStore').innerHTML='<option value="">Select store...</option>'+(st||[]).map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
     document.getElementById('taskOrder').innerHTML='<option value="">Select order...</option>'+(or||[]).map(o=>`<option value="${o.id}">${o.order_number} — ${o.name}</option>`).join('');
     document.getElementById('taskFieldUser').innerHTML='<option value="">Select field user...</option>'+(fu||[]).map(u=>`<option value="${u.id}">${u.name} (${u.username})</option>`).join('');
+  }
+  if(mid==='brandModal'){
+    const{data:cl}=await sb.from('clients').select('id,name').order('name');
+    const sel=document.getElementById('brandClient');
+    sel.innerHTML='<option value="">Select client...</option>'+(cl||[]).map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
   }
   if(mid==='storeModal'){
     const{data:ci}=await sb.from('cities').select('id,name').order('name');
